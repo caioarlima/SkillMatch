@@ -16,4 +16,3 @@ Marque as funcionalidades que já foram implementadas e testadas.
 -   [ ] Login com autenticação
 -   [ ] Tela de listagem de produtos
 -   [ ] Alguma outra funcionalidade específica do seu projeto
--   [ ] ... (Adicione todas as funcionalidades que serão desenvolvidas)
