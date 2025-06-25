@@ -15,4 +15,3 @@ Marque as funcionalidades que já foram implementadas e testadas.
 -   [x] Cadastro de usuários
 -   [x] Login com autenticação
 -   [ ] Tela de listagem de produtos
--   [ ] Alguma outra funcionalidade específica do seu projeto
