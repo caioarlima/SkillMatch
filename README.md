@@ -12,7 +12,7 @@
 
 Marque as funcionalidades que já foram implementadas e testadas.
 
--   [ ] Cadastro de usuários
--   [ ] Login com autenticação
+-   [x] Cadastro de usuários
+-   [x] Login com autenticação
 -   [ ] Tela de listagem de produtos
 -   [ ] Alguma outra funcionalidade específica do seu projeto
