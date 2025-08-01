@@ -1,15 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:skilmatch/utils/colors.dart';
 
-class TelaProcurar extends StatefulWidget { 
+class TelaProcurar extends StatefulWidget {
   const TelaProcurar({super.key});
 
   @override
-  State<TelaProcurar> createState() => _TelaProcurarState(); 
+  State<TelaProcurar> createState() => _TelaProcurarState();
 }
 
-class _TelaProcurarState extends State<TelaProcurar> { 
+class _TelaProcurarState extends State<TelaProcurar> {
   final TextEditingController _controladorBuscarHabilidades = TextEditingController();
+  int _currentIndex = 0; // For bottom navigation
 
   @override
   void dispose() {
@@ -21,51 +22,144 @@ class _TelaProcurarState extends State<TelaProcurar> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.fundo,
-      body: Center(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: <Widget>[
-              Text(
-                "Procurar Trocas",
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: AppColors.black,
-                  fontSize: 36,
+      appBar: AppBar(
+        title: const Text('Procurar Trocas'),
+        centerTitle: true,
+        elevation: 0,
+        backgroundColor: AppColors.fundo,
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: <Widget>[
+            // Search Field
+            TextFormField(
+              controller: _controladorBuscarHabilidades,
+              decoration: InputDecoration(
+                hintText: "Buscar Habilidades",
+                hintStyle: TextStyle(color: AppColors.cinza),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8.0),
                 ),
+                filled: true,
+                fillColor: AppColors.white,
+                contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 16.0, vertical: 12.0),
+                suffixIcon: const Icon(Icons.search),
               ),
-              const SizedBox(height: 30),
+              keyboardType: TextInputType.text,
+            ),
+            const SizedBox(height: 20),
 
-              SizedBox(
-                width: 360,
-                child: TextFormField(
-                  controller: _controladorBuscarHabilidades,
-                  decoration: InputDecoration(
-                    hintText: "🔍︎ Buscar Habilidades/Pessoas",
-                    hintStyle: TextStyle(color: AppColors.cinza),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8.0),
-                    ),
-                    filled: true,
-                    fillColor: AppColors.white,
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
-                  ),
-                  keyboardType: TextInputType.text,
-                ),
+            // Recommended Section
+            Text(
+              "Recomendados",
+              style: TextStyle(
+                color: AppColors.black,
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
               ),
-              const SizedBox(height: 10),
+            ),
+            const SizedBox(height: 10),
 
-              Text(
-                "Recomendados",
-                style: TextStyle(
-                  color: AppColors.black,
-                  fontSize: 25,
-                ),
-              ),
-            ],
+            // Recommended Users List
+            _buildUserCard(
+              name: "Lucas Moura",
+              location: "São Paulo",
+              skill: "Pintor",
+            ),
+            _buildUserCard(
+              name: "Neymar Jr",
+              location: "São Paulo",
+              skill: "Mecânico",
+            ),
+            _buildUserCard(
+              name: "Vitor Roque",
+              location: "São Paulo",
+              skill: "Eletricista",
+            ),
+          ],
+        ),
+      ),
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: _currentIndex,
+        onTap: (index) {
+          setState(() {
+            _currentIndex = index;
+          });
+        },
+        type: BottomNavigationBarType.fixed,
+        items: const [
+          BottomNavigationBarItem(
+            icon: Icon(Icons.search),
+            label: 'Procurar Trocas',
           ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.list),
+            label: 'Minhas Trocas',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.message),
+            label: 'Mensagens',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.person),
+            label: 'Perfil',
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildUserCard({
+    required String name,
+    required String location,
+    required String skill,
+  }) {
+    return Card(
+      margin: const EdgeInsets.only(bottom: 12),
+      child: Padding(
+        padding: const EdgeInsets.all(12.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  name,
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const Text("Foto"),
+              ],
+            ),
+            const SizedBox(height: 4),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(location),
+                Text(
+                  skill,
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Align(
+              alignment: Alignment.centerRight,
+              child: TextButton(
+                onPressed: () {},
+                child: const Text(
+                  "(Report Troca)",
+                  style: TextStyle(color: Colors.grey),
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );
