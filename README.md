@@ -47,3 +47,5 @@
 - [ ] Anúncios de serviços profissionais (opcional)
 - [ ] Integração com pagamentos (caso envolva valores monetários)
 - [ ] Gamificação (badges por trocas bem-sucedidas)
+
+https://drive.google.com/file/d/1JUmLAKuIYdtuz7BmLc82RSToQ-yArXJG/view?usp=sharing - Diagrama de classes
