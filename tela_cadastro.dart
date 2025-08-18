@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart'; // Importa a biblioteca do Firebase Auth
 import 'package:skilmatch/utils/colors.dart';
-import 'package:skilmatch/telas/tela_ProcurarTrocas.dart'; 
-import 'package:skilmatch/telas/tela_login.dart'; 
+import 'package:skilmatch/telas/tela_ProcurarTrocas.dart';
+import 'package:skilmatch/telas/tela_login.dart';
 
 enum GeneroOpcao { masculino, feminino, naoInformar }
 
@@ -38,27 +39,54 @@ class _TelaCadastroState extends State<TelaCadastro> {
     super.dispose();
   }
 
-  void _cadastrarUsuario() {
+  // Função assíncrona para criar um novo usuário no Firebase
+  Future<void> _cadastrarUsuario() async {
+    // 1. Validação do formulário
     if (_chaveFormulario.currentState!.validate()) {
-      final String emailDigitado = _controladorEmailCadastro.text.trim();
+      // 2. Validação se as senhas coincidem
       final String senhaDigitada = _controladorSenhaCadastro.text.trim();
       final String confirmarSenhaDigitada = _controladorConfirmarSenha.text.trim();
-
       if (senhaDigitada != confirmarSenhaDigitada) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text("As senhas não coincidem. Por favor, verifique.")),
         );
         return;
       }
+      
+      // 3. Tentar o cadastro com o Firebase
+      try {
+        await FirebaseAuth.instance.createUserWithEmailAndPassword(
+          email: _controladorEmailCadastro.text.trim(),
+          password: senhaDigitada,
+        );
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Cadastro realizado com sucesso!")),
-      );
+        // Se o cadastro for bem-sucedido, exibe uma mensagem e navega para a próxima tela
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Cadastro realizado com sucesso!")),
+        );
 
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => const TelaProcurar()),
-      );
+        // Navegue para a próxima tela
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const TelaProcurar()),
+        );
+      } on FirebaseAuthException catch (e) {
+        // Trate os erros do Firebase e exiba mensagens específicas
+        String mensagemDeErro;
+        if (e.code == 'weak-password') {
+          mensagemDeErro = 'A senha fornecida é muito fraca.';
+        } else if (e.code == 'email-already-in-use') {
+          mensagemDeErro = 'Já existe uma conta com este e-mail.';
+        } else if (e.code == 'invalid-email') {
+           mensagemDeErro = 'O formato do e-mail é inválido.';
+        } else {
+          mensagemDeErro = 'Ocorreu um erro no cadastro. Tente novamente.';
+        }
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(mensagemDeErro)),
+        );
+      }
     }
   }
 
@@ -249,7 +277,7 @@ class _TelaCadastroState extends State<TelaCadastro> {
                     contentPadding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
                   ),
                   keyboardType: TextInputType.multiline,
-                  maxLines: 3, // Permite 3 linhas de altura
+                  maxLines: 3,
                   validator: (valor) {
                     if (valor == null || valor.isEmpty) {
                       return 'Por favor descreva suas habilidades e talentos';
@@ -329,7 +357,7 @@ class _TelaCadastroState extends State<TelaCadastro> {
                     ),
                   ),
                 ),
-                const SizedBox(height: 20), 
+                const SizedBox(height: 20),
 
                 ElevatedButton(
                   onPressed: _voltarParaLogin,
