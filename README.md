@@ -1,16 +1,38 @@
-# skilmatch
+Autenticação e Perfil
+[x] Cadastro de usuários (e-mail, telefone, redes sociais)
+[x] Login com autenticação (e-mail/senha, Google, Facebook)
+[x] Edição de perfil (foto, bio, habilidades, localização)
+[] Verificação de identidade (documento ou selfie)
+[x] Sistema de reputação (avaliações por favores realizados)
 
-A new Flutter project.
+Match e Conexões
+[x] Swipe de habilidades (like/dislike em perfis)
+[x] Match recíproco (ambos curtiram as habilidades um do outro)
+[x] Chat entre usuários após match
+[x] Filtros de busca (localização, tipo de habilidade, disponibilidade)
+[x] Sugestões inteligentes (baseado em histórico de trocas)
 
-## Getting Started
+Sistema de Favores
+[x] Cadastro de habilidades (ex: "Aulas de violão", "Conserto de móveis")
+[x] Solicitação de favor (descrição, prazo, valor em créditos)
+[x] Aceite/rejeição de favor
+[x] Confirmação de conclusão do favor
 
-This project is a starting point for a Flutter application.
+Segurança e Moderação
+[] Denúncia de usuários/comportamento inadequado
+[] Bloqueio de contatos indesejados
+[] Moderação manual de anúncios de habilidades
+[] Privacidade (opção de perfil anônimo ou restrito)
 
-A few resources to get you started if this is your first Flutter project:
+Notificações e Engajamento
+[x] Notificação de match
+[] Lembrete de favor pendente
+[] Push notifications para novas mensagens
+[x] Sistema de feedback (estrelas/comentários)
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+Extras e Monetização
+[] Assinatura premium (mais visibilidade, filtros avançados)
+[] Anúncios de serviços profissionais (opcional)
+[] Integração com pagamentos (caso envolva valores monetários)
+[] Gamificação (badges por trocas bem-sucedidas)
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
