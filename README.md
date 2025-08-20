@@ -9,7 +9,7 @@
 
 ---
 
-## Checklist de Funcionalidades - Segunda Entrega
+## Checklist de Funcionalidades 
 
 ### Autenticação e Perfil
 - [x] Cadastro de usuários (e-mail, telefone, redes sociais)
