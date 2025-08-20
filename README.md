@@ -1,6 +1,6 @@
 Autenticação e Perfil
-[x] Cadastro de usuários (e-mail, telefone, redes sociais)
-[x] Login com autenticação (e-mail/senha, Google, Facebook)
+[ ] Cadastro de usuários (e-mail, telefone, redes sociais)
+[ ] Login com autenticação (e-mail/senha, Google, Facebook)
 [x] Edição de perfil (foto, bio, habilidades, localização)
 [] Verificação de identidade (documento ou selfie)
 [x] Sistema de reputação (avaliações por favores realizados)
