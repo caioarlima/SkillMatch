@@ -21,8 +21,9 @@ class _TelaLoginState extends State<TelaLogin> {
 
   final int _tamanhoMinimoSenha = 6;
   final int _tamanhoMaximoSenha = 20;
-  final RegExp _regexSenha =
-      RegExp(r"^(?=.*[0-9])(?=.*[a-zA-Z])(?=\S+$).{8,}$");
+  final RegExp _regexSenha = RegExp(
+    r"^(?=.*[0-9])(?=.*[a-zA-Z])(?=\S+$).{8,}$",
+  );
 
   @override
   void dispose() {
@@ -34,7 +35,6 @@ class _TelaLoginState extends State<TelaLogin> {
   Future<void> _fazerLogin() async {
     if (_chaveFormulario.currentState!.validate()) {
       try {
-
         await fazerLoginComEmailSenha(
           _controladorEmail.text.trim(),
           _controladorSenha.text.trim(),
@@ -51,9 +51,9 @@ class _TelaLoginState extends State<TelaLogin> {
         } else {
           mensagemDeErro = 'Ocorreu um erro inesperado: ${e.code}';
         }
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(mensagemDeErro)),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(mensagemDeErro)));
       }
     }
   }
@@ -80,19 +80,13 @@ class _TelaLoginState extends State<TelaLogin> {
                 Text(
                   "Olá! Faça login no SkillMatch",
                   textAlign: TextAlign.center,
-                  style: TextStyle(
-                    color: AppColors.cinza,
-                    fontSize: 30,
-                  ),
+                  style: TextStyle(color: AppColors.cinza, fontSize: 30),
                 ),
                 const SizedBox(height: 30),
                 Text(
                   "Conecte talentos, \ntroque habilidades.",
                   textAlign: TextAlign.center,
-                  style: TextStyle(
-                    color: AppColors.black,
-                    fontSize: 30,
-                  ),
+                  style: TextStyle(color: AppColors.black, fontSize: 30),
                 ),
                 const SizedBox(height: 30),
                 TextFormField(
@@ -106,7 +100,9 @@ class _TelaLoginState extends State<TelaLogin> {
                     filled: true,
                     fillColor: AppColors.white,
                     contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 16.0, vertical: 12.0),
+                      horizontal: 16.0,
+                      vertical: 12.0,
+                    ),
                   ),
                   keyboardType: TextInputType.emailAddress,
                   validator: (valor) {
@@ -132,7 +128,9 @@ class _TelaLoginState extends State<TelaLogin> {
                     filled: true,
                     fillColor: AppColors.white,
                     contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 16.0, vertical: 12.0),
+                      horizontal: 16.0,
+                      vertical: 12.0,
+                    ),
                   ),
                   validator: (valor) {
                     if (valor == null || valor.isEmpty) {
@@ -154,7 +152,8 @@ class _TelaLoginState extends State<TelaLogin> {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                          builder: (context) => const TelaEsqueciSenha()),
+                        builder: (context) => const TelaEsqueciSenha(),
+                      ),
                     );
                   },
                   child: Text(
@@ -179,19 +178,13 @@ class _TelaLoginState extends State<TelaLogin> {
                   ),
                   child: Text(
                     "Entrar",
-                    style: TextStyle(
-                      fontSize: 30,
-                      color: AppColors.white,
-                    ),
+                    style: TextStyle(fontSize: 30, color: AppColors.white),
                   ),
                 ),
                 const SizedBox(height: 30),
                 Text(
                   "Sem conta?",
-                  style: TextStyle(
-                    fontSize: 20,
-                    color: AppColors.black,
-                  ),
+                  style: TextStyle(fontSize: 20, color: AppColors.black),
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 5),
@@ -200,7 +193,8 @@ class _TelaLoginState extends State<TelaLogin> {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                          builder: (context) => const TelaCadastro()),
+                        builder: (context) => const TelaCadastro(),
+                      ),
                     );
                   },
                   child: Text(

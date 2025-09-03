@@ -8,6 +8,8 @@ Future<void> criarUsuarioComEmailSenha({
   required String cidade,
   required String bio,
   required String? genero,
+  required String? cpf,
+  required String? dataNascimento,
 }) async {
   try {
 
@@ -25,6 +27,8 @@ Future<void> criarUsuarioComEmailSenha({
       'bio': bio,
       'genero': genero,
       'email': email,
+      'cpf': cpf,
+      'data de nascimento': dataNascimento,
     });
     
     print("Usu\u00E1rio criado e dados salvos com sucesso!");
