@@ -42,7 +42,7 @@ class _TelaLoginState extends State<TelaLogin> {
 
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => const TelaProcurar()),
+          MaterialPageRoute(builder: (context) => const TelaPrincipal()),
         );
       } on FirebaseAuthException catch (e) {
         String mensagemDeErro;

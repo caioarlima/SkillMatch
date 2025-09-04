@@ -45,7 +45,7 @@ class AuthCheck extends StatelessWidget {
         }
 
         if (snapshot.hasData) {
-          return const TelaProcurar(); 
+          return const TelaPrincipal(); 
         } else {
          
           return const TelaLogin(); 

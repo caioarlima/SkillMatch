@@ -22,7 +22,7 @@ class _TelaPerfilState extends State<TelaPerfil> {
     if (index == 0) {
       Navigator.push(
         context,
-        MaterialPageRoute(builder: (context) => const TelaProcurar()),
+        MaterialPageRoute(builder: (context) => const TelaPrincipal()),
       );
     } else if (index == 1) {
       Navigator.push(
