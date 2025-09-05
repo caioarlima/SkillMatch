@@ -24,7 +24,7 @@ class _TelaCodigoState extends State<TelaCodigo> {
     if (_chaveFormulario.currentState!.validate()) {
       Navigator.push(
         context,
-        MaterialPageRoute(builder: (context) => const TelaMudarSenha()),
+        MaterialPageRoute(builder: (context) => const TelaPrincipal()),
       );
     }
   }
