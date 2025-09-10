@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:skilmatch/Controller/auth_controller.dart';
 import 'package:skilmatch/Controller/colors.dart';
+import 'package:skilmatch/Services/validadores.dart';
 import 'package:skilmatch/View/tela_login.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 
 class TelaEsqueciSenha extends StatefulWidget {
   const TelaEsqueciSenha({super.key});
@@ -11,11 +13,8 @@ class TelaEsqueciSenha extends StatefulWidget {
 }
 
 class _TelaEsqueciSenhaState extends State<TelaEsqueciSenha> {
-  final TextEditingController _controladorEmailRedefinicao =
-      TextEditingController();
+  final TextEditingController _controladorEmailRedefinicao = TextEditingController();
   final _chaveFormulario = GlobalKey<FormState>();
-  final FirebaseAuth _auth = FirebaseAuth.instance;
-  bool _isLoading = false;
 
   @override
   void dispose() {
@@ -28,27 +27,34 @@ class _TelaEsqueciSenhaState extends State<TelaEsqueciSenha> {
       return;
     }
 
-    setState(() {
-      _isLoading = true;
-    });
-
+    final authController = Provider.of<AuthController>(context, listen: false);
+    
     try {
-      await _auth.sendPasswordResetEmail(
-        email: _controladorEmailRedefinicao.text.trim(),
-      );
-      _mostrarDialogo(
-        'Sucesso!',
-        'Se o e-mail estiver cadastrado, um link de redefinição de senha foi enviado para ele.',
-      );
-    } on FirebaseAuthException catch (e) {
-      _mostrarSnackbar('Ocorreu um erro. Tente novamente mais tarde.');
-    } catch (e) {
-      _mostrarSnackbar('Ocorreu um erro inesperado.');
-    } finally {
-      setState(() {
-        _isLoading = false;
+      await authController.enviarEmailRedefinicao(_controladorEmailRedefinicao.text.trim());
+      
+      showDialog(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            backgroundColor: AppColors.fundo,
+            title: const Text('Sucesso!'),
+            content: const Text('Se o e-mail estiver cadastrado, um link de redefinição de senha foi enviado para ele.'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                style: TextButton.styleFrom(backgroundColor: AppColors.roxo),
+                child: Text('OK', style: TextStyle(color: AppColors.white)),
+              ),
+            ],
+          );
+        },
+      ).then((_) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const TelaLogin()),
+        );
       });
-    }
+    } catch (e) {}
   }
 
   void _voltarParaLogin() {
@@ -58,39 +64,10 @@ class _TelaEsqueciSenhaState extends State<TelaEsqueciSenha> {
     );
   }
 
-  void _mostrarDialogo(String titulo, String mensagem) {
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          backgroundColor: AppColors.fundo,
-          title: Text(titulo),
-          content: Text(mensagem),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              style: TextButton.styleFrom(backgroundColor: AppColors.roxo),
-              child: Text('OK', style: TextStyle(color: AppColors.white)),
-            ),
-          ],
-        );
-      },
-    ).then((_) {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => const TelaLogin()),
-      );
-    });
-  }
-
-  void _mostrarSnackbar(String mensagem) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(mensagem), backgroundColor: Colors.red),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
+    final authController = Provider.of<AuthController>(context);
+
     return Scaffold(
       backgroundColor: AppColors.fundo,
       body: Center(
@@ -121,51 +98,26 @@ class _TelaEsqueciSenhaState extends State<TelaEsqueciSenha> {
                     decoration: InputDecoration(
                       hintText: "Email",
                       hintStyle: TextStyle(color: AppColors.cinza),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8.0),
-                      ),
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(8.0)),
                       filled: true,
                       fillColor: AppColors.white,
-                      contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 16.0,
-                        vertical: 12.0,
-                      ),
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
                     ),
                     keyboardType: TextInputType.emailAddress,
-                    validator: (valor) {
-                      if (valor == null || valor.isEmpty) {
-                        return 'Por favor insira seu email';
-                      }
-                      if (!RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(valor)) {
-                        return 'Por favor insira um email válido';
-                      }
-                      return null;
-                    },
+                    validator: Validators.validarEmail,
                   ),
                 ),
                 const SizedBox(height: 35),
                 ElevatedButton(
-                  onPressed: _isLoading ? null : _enviarLink,
+                  onPressed: authController.isLoading ? null : _enviarLink,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.roxo,
                     minimumSize: const Size(250, 60),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8.0),
-                    ),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.0)),
                   ),
-                  child: _isLoading
-                      ? const CircularProgressIndicator(
-                          valueColor: AlwaysStoppedAnimation<Color>(
-                            Colors.white,
-                          ),
-                        )
-                      : Text(
-                          "Enviar Link",
-                          style: TextStyle(
-                            fontSize: 30,
-                            color: AppColors.white,
-                          ),
-                        ),
+                  child: authController.isLoading
+                      ? const CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(Colors.white))
+                      : Text("Enviar Link", style: TextStyle(fontSize: 30, color: AppColors.white)),
                 ),
                 const SizedBox(height: 35),
                 ElevatedButton(
@@ -173,14 +125,9 @@ class _TelaEsqueciSenhaState extends State<TelaEsqueciSenha> {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.roxo,
                     minimumSize: const Size(150, 60),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8.0),
-                    ),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.0)),
                   ),
-                  child: Text(
-                    "Voltar",
-                    style: TextStyle(fontSize: 30, color: AppColors.white),
-                  ),
+                  child: Text("Voltar", style: TextStyle(fontSize: 30, color: AppColors.white)),
                 ),
               ],
             ),

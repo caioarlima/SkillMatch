@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:provider/provider.dart';
+import 'package:skilmatch/Controller/auth_controller.dart';
 import 'package:skilmatch/Controller/colors.dart';
+import 'package:skilmatch/Services/validadores.dart';
 import 'package:skilmatch/View/tela_EsqueciSenha.dart';
-import 'package:skilmatch/View/tela_ProcurarTrocas.dart';
 import 'package:skilmatch/View/tela_cadastro.dart';
-
-import 'package:skilmatch/Model/LoginEmail-Senha.dart';
+import 'package:skilmatch/View/tela_ProcurarTrocas.dart';
 
 class TelaLogin extends StatefulWidget {
   const TelaLogin({super.key});
@@ -19,12 +19,6 @@ class _TelaLoginState extends State<TelaLogin> {
   final TextEditingController _controladorSenha = TextEditingController();
   final _chaveFormulario = GlobalKey<FormState>();
 
-  final int _tamanhoMinimoSenha = 6;
-  final int _tamanhoMaximoSenha = 20;
-  final RegExp _regexSenha = RegExp(
-    r"^(?=.*[0-9])(?=.*[a-zA-Z])(?=\S+$).{8,}$",
-  );
-
   @override
   void dispose() {
     _controladorEmail.dispose();
@@ -32,34 +26,29 @@ class _TelaLoginState extends State<TelaLogin> {
     super.dispose();
   }
 
-  Future<void> _fazerLogin() async {
-    if (_chaveFormulario.currentState!.validate()) {
-      try {
-        await fazerLoginComEmailSenha(
-          _controladorEmail.text.trim(),
-          _controladorSenha.text.trim(),
-        );
-
+Future<void> _fazerLogin(BuildContext context, AuthController authController) async {
+  if (_chaveFormulario.currentState!.validate()) {
+    try {
+      await authController.login(
+        _controladorEmail.text.trim(),
+        _controladorSenha.text.trim(),
+      );
+      
+      if (authController.errorMessage == null) {
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => const TelaPrincipal()),
+          MaterialPageRoute(builder: (context) => const TelaProcuraTrocas()),
         );
-      } on FirebaseAuthException catch (e) {
-        String mensagemDeErro;
-        if (e.code == 'invalid-credential') {
-          mensagemDeErro = 'E-mail ou senha inválidos.';
-        } else {
-          mensagemDeErro = 'Ocorreu um erro inesperado: ${e.code}';
-        }
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(mensagemDeErro)));
       }
+    } catch (e) {
     }
   }
+}
 
   @override
   Widget build(BuildContext context) {
+    final authController = Provider.of<AuthController>(context);
+
     return Scaffold(
       backgroundColor: AppColors.fundo,
       body: Center(
@@ -84,7 +73,7 @@ class _TelaLoginState extends State<TelaLogin> {
                 ),
                 const SizedBox(height: 30),
                 Text(
-                  "Conecte talentos, \ntroque habilidades.",
+                  "Conecte talentos, troque habilidades.",
                   textAlign: TextAlign.center,
                   style: TextStyle(color: AppColors.black, fontSize: 30),
                 ),
@@ -94,26 +83,13 @@ class _TelaLoginState extends State<TelaLogin> {
                   decoration: InputDecoration(
                     hintText: "Email",
                     hintStyle: TextStyle(color: AppColors.cinza),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8.0),
-                    ),
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(8.0)),
                     filled: true,
                     fillColor: AppColors.white,
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 16.0,
-                      vertical: 12.0,
-                    ),
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
                   ),
                   keyboardType: TextInputType.emailAddress,
-                  validator: (valor) {
-                    if (valor == null || valor.isEmpty) {
-                      return 'Por favor insira seu email';
-                    }
-                    if (!RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(valor)) {
-                      return 'Por favor insira um email válido';
-                    }
-                    return null;
-                  },
+                  validator: Validators.validarEmail,
                 ),
                 const SizedBox(height: 10),
                 TextFormField(
@@ -122,38 +98,27 @@ class _TelaLoginState extends State<TelaLogin> {
                   decoration: InputDecoration(
                     hintText: "Senha",
                     hintStyle: TextStyle(color: AppColors.cinza),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8.0),
-                    ),
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(8.0)),
                     filled: true,
                     fillColor: AppColors.white,
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 16.0,
-                      vertical: 12.0,
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+                  ),
+                  validator: (valor) => Validators.validarSenha(valor, 6),
+                ),
+                if (authController.errorMessage != null)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 10),
+                    child: Text(
+                      authController.errorMessage!,
+                      style: TextStyle(color: Colors.red),
                     ),
                   ),
-                  validator: (valor) {
-                    if (valor == null || valor.isEmpty) {
-                      return 'Por favor insira sua senha';
-                    }
-                    if (valor.length < _tamanhoMinimoSenha ||
-                        valor.length > _tamanhoMaximoSenha) {
-                      return 'A senha deve ter entre $_tamanhoMinimoSenha e $_tamanhoMaximoSenha caracteres';
-                    }
-                    if (!_regexSenha.hasMatch(valor)) {
-                      return 'A senha deve ter no mínimo 8 caracteres, incluindo letras maiúsculas, minúsculas e números.';
-                    }
-                    return null;
-                  },
-                ),
                 const SizedBox(height: 20),
                 GestureDetector(
                   onTap: () {
                     Navigator.push(
                       context,
-                      MaterialPageRoute(
-                        builder: (context) => const TelaEsqueciSenha(),
-                      ),
+                      MaterialPageRoute(builder: (context) => const TelaEsqueciSenha()),
                     );
                   },
                   child: Text(
@@ -168,18 +133,15 @@ class _TelaLoginState extends State<TelaLogin> {
                 ),
                 const SizedBox(height: 30),
                 ElevatedButton(
-                  onPressed: _fazerLogin,
+                  onPressed: authController.isLoading ? null : () => _fazerLogin(context, authController),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.roxo,
                     minimumSize: const Size(250, 60),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8.0),
-                    ),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.0)),
                   ),
-                  child: Text(
-                    "Entrar",
-                    style: TextStyle(fontSize: 30, color: AppColors.white),
-                  ),
+                  child: authController.isLoading
+                      ? CircularProgressIndicator(color: AppColors.white)
+                      : Text("Entrar", style: TextStyle(fontSize: 30, color: AppColors.white)),
                 ),
                 const SizedBox(height: 30),
                 Text(
@@ -192,9 +154,7 @@ class _TelaLoginState extends State<TelaLogin> {
                   onTap: () {
                     Navigator.push(
                       context,
-                      MaterialPageRoute(
-                        builder: (context) => const TelaCadastro(),
-                      ),
+                      MaterialPageRoute(builder: (context) => const TelaCadastro()),
                     );
                   },
                   child: Text(

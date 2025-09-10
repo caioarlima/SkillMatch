@@ -1,12 +1,16 @@
 import 'dart:io';
+import 'package:flutter/services.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:provider/provider.dart';
+import 'package:skilmatch/Controller/auth_controller.dart';
 import 'package:skilmatch/Controller/colors.dart';
-import 'package:skilmatch/Repository/UsuarioEmail-Senha.dart';
-import 'package:skilmatch/View/tela_ProcurarTrocas.dart';
+import 'package:skilmatch/Model/usuario.dart';
+import 'package:skilmatch/Repository/usuario_repository.dart';
+import 'package:skilmatch/Services/validadores.dart';
 import 'package:skilmatch/View/tela_login.dart';
+import 'package:skilmatch/View/tela_ProcurarTrocas.dart';
 
 enum GeneroOpcao { masculino, feminino, naoInformar }
 
@@ -27,7 +31,7 @@ class _TelaCadastroState extends State<TelaCadastro> {
   final TextEditingController _controladorConfirmarSenha = TextEditingController();
   final TextEditingController _controladorDataNasc = TextEditingController();
   final _chaveFormulario = GlobalKey<FormState>();
-
+  
   File? _imagemSelecionada;
   String? _urlImagemWeb;
   DateTime? _dataNascimento;
@@ -58,40 +62,9 @@ class _TelaCadastroState extends State<TelaCadastro> {
     if (dataSelecionada != null && dataSelecionada != _dataNascimento) {
       setState(() {
         _dataNascimento = dataSelecionada;
-        _controladorDataNasc.text =
-            "${_dataNascimento!.day}/${_dataNascimento!.month}/${_dataNascimento!.year}";
+        _controladorDataNasc.text = "${_dataNascimento!.day}/${_dataNascimento!.month}/${_dataNascimento!.year}";
       });
     }
-  }
-
-  int _calcularIdade(DateTime dataNascimento) {
-    final hoje = DateTime.now();
-    int idade = hoje.year - dataNascimento.year;
-    if (hoje.month < dataNascimento.month ||
-        (hoje.month == dataNascimento.month &&
-            hoje.day < dataNascimento.day)) {
-      idade--;
-    }
-    return idade;
-  }
-
-  String? _validarCPF(String? cpf) {
-    if (cpf == null || cpf.isEmpty) return 'Por favor, insira o seu CPF';
-    String cpfLimpo = cpf.replaceAll(RegExp(r'\D'), '');
-    if (cpfLimpo.length != 11) return 'CPF deve ter 11 dígitos';
-    if (RegExp(r'^(\d)\1*$').hasMatch(cpfLimpo)) return 'CPF inválido';
-    int soma = 0;
-    int resto;
-    for (int i = 1; i <= 9; i++) soma += int.parse(cpfLimpo[i - 1]) * (11 - i);
-    resto = (soma * 10) % 11;
-    if (resto == 10 || resto == 11) resto = 0;
-    if (resto != int.parse(cpfLimpo[9])) return 'CPF inválido';
-    soma = 0;
-    for (int i = 1; i <= 10; i++) soma += int.parse(cpfLimpo[i - 1]) * (12 - i);
-    resto = (soma * 10) % 11;
-    if (resto == 10 || resto == 11) resto = 0;
-    if (resto != int.parse(cpfLimpo[10])) return 'CPF inválido';
-    return null;
   }
 
   Future<void> _pegarImagemDaGaleria() async {
@@ -118,14 +91,11 @@ class _TelaCadastroState extends State<TelaCadastro> {
           backgroundColor: AppColors.fundo,
           title: const Text("Termos de Uso e Políticas de Privacidade"),
           content: const SingleChildScrollView(
-            child: Text("📜 Termos de Uso\n\n" "1. Aceitação dos Termos\n" "Ao criar uma conta e utilizar o aplicativo de troca de favores (“Aplicativo”), você concorda com estes Termos de Uso. Caso não concorde, não utilize o Aplicativo.\n\n" "2. Funcionamento do Aplicativo\n" "O Aplicativo permite que usuários solicitem e ofereçam ajuda em pequenas tarefas do dia a dia (ex.: trocar uma lâmpada, lavar um carro, levar algo ao mercado).\n\n" "Os favores são realizados de forma voluntária e sem garantia de qualidade.\n\n" "O Aplicativo não é intermediador de serviços profissionais pagos.\n\n" "3. Responsabilidades do Usuário\n\n" "• Fornecer informações verdadeiras no cadastro.\n" "• Cumprir os favores acordados com responsabilidade e respeito.\n" "• Não utilizar o Aplicativo para atividades ilegais, perigosas ou que envolvam menores sem supervisão adequada.\n\n" "4. Limitação de Responsabilidade\n" "O Aplicativo não se responsabiliza por danos, perdas ou prejuízos decorrentes das interações entre usuários. O uso é de inteira responsabilidade dos participantes.\n\n" "5. Suspensão e Encerramento\n" "O Aplicativo pode suspender ou excluir contas que descumprirem estes Termos ou utilizarem a plataforma de forma abusiva.\n\n" "6. Alterações\n" "Os Termos podem ser atualizados periodicamente. O uso contínuo do Aplicativo após mudanças significa concordância com a nova versão.\n\n" "---\n\n" "🔒 Política de Privacidade\n\n" "1. Coleta de Informações\n" "Podemos coletar dados pessoais fornecidos por você, como:\n\n" "• Nome, e-mail, telefone e foto de perfil.\n" "• Dados de uso do Aplicativo (ex.: favores solicitados e oferecidos).\n\n" "2. Uso das Informações\n" "As informações são utilizadas para:\n\n" "• Criar e manter sua conta.\n" "• Conectar você a outros usuários do Aplicativo.\n" "• Melhorar a experiência e segurança da plataforma.\n\n" "3. Compartilhamento de Dados\n" "Não vendemos suas informações. Seus dados podem ser compartilhados apenas:\n\n" "• Com outros usuários (ex.: nome e contato para combinar favores).\n" "• Quando exigido por lei ou autoridades competentes.\n\n" "4. Armazenamento e Segurança\n" "Seus dados são armazenados em servidores seguros. Apesar dos esforços, não garantimos proteção absoluta contra acessos não autorizados.\n\n" "5. Direitos do Usuário\n" "Você pode:\n\n" "• Solicitar a exclusão da sua conta.\n" "• Pedir a correção ou remoção de seus dados pessoais.\n\n" "6. Alterações\n" "A Política de Privacidade pode ser atualizada. O uso contínuo do Aplicativo significa concordância com as mudanças.",),
+            child: Text("📖 Termos de Uso\n\n1. Aceitação dos Termos\nAo criar uma conta e utilizar o aplicativo de troca de favores (\"Aplicativo\"), você concorda com estes Termos de Uso. Caso não concorde, não utilize o Aplicativo.\n\n2. Funcionamento do Aplicativo\nO Aplicativo permite que usuários solicitem e ofereçam ajuda em pequenas tarefas do dia a dia (ex.: trocar uma lâmpada, lavar um carro, levar algo ao mercado).\n\nOs favores são realizados de forma voluntária e sem garantia de qualidade.\n\nO Aplicativo não é intermediador de serviços profissionais pagos.\n\n3. Responsabilidades do Usuário\n\n• Fornecer informações verdadeiras no cadastro.\n• Cumprir os favores acordados com responsabilidade e respeito.\n• Não utilizar o Aplicativo para atividades ilegais, perigosas ou que envolvam menores sem supervisão adequada.\n\n4. Limitação de Responsabilidade\nO Aplicativo não se responsabiliza por danos, perdas ou prejuízos decorrentes das interações entre usuários. O uso é de inteira responsabilidade dos participantes.\n\n5. Suspensão e Encerramento\nO Aplicativo pode suspender ou excluir contas que descumprirem estes Termos ou utilizarem a plataforma de forma abusiva.\n\n6. Alterações\nOs Termos podem ser atualizados periodicamente. O uso contínuo do Aplicativo após mudanças significa concordância com a nova versão.\n\n---\n\n🔗 Política de Privacidade\n\n1. Coleta de Informações\nPodemos coletar dados pessoais fornecidos por você, como:\n\n• Nome, e-mail, telefone e foto de perfil.\n• Dados de uso do Aplicativo (ex.: favores solicitados e oferecidos).\n\n2. Uso das Informações\nAs informações são utilizadas para:\n\n• Criar e manter sua conta.\n• Conectar você a outros usuários do Aplicativo.\n• Melhorar a experiência e segurança da plataforma.\n\n3. Compartilhamento de Dados\nNão vendemos suas informações. Seus dados podem ser compartilhados apenas:\n\n• Com outros usuários (ex.: nome e contato para combinar favores).\n• Quando exigido por lei ou autoridades competentes.\n\n4. Armazenamento e Segurança\nSeus dados são armazenados em servidores seguros. Apesar dos esforços, não garantimos proteção absoluta contra acessos não autorizados.\n\n5. Direitos do Usuário\nVocê pode:\n\n• Solicitar a exclusão da sua conta.\n• Pedir a correção ou remoção de seus dados pessoais.\n\n6. Alterações\nA Política de Privacidade pode ser atualizada. O uso contínuo do Aplicativo significa concordância com as mudanças."),
           ),
           actions: [
             TextButton(
-              style: TextButton.styleFrom(
-                backgroundColor: AppColors.roxo,
-                foregroundColor: AppColors.white,
-              ),
+              style: TextButton.styleFrom(backgroundColor: AppColors.roxo, foregroundColor: AppColors.white),
               onPressed: () {
                 Navigator.pop(context);
                 setState(() {
@@ -140,70 +110,111 @@ class _TelaCadastroState extends State<TelaCadastro> {
     );
   }
 
-  Future<void> _cadastrarUsuario() async {
-    if (_chaveFormulario.currentState!.validate()) {
-      if (!_aceitouTermos) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-              content: Text(
-                  "Você deve aceitar os Termos de Uso e Políticas de Privacidade.")),
-        );
-        return;
-      }
-      final String senhaDigitada = _controladorSenhaCadastro.text.trim();
-      final String confirmarSenhaDigitada =
-          _controladorConfirmarSenha.text.trim();
-      if (senhaDigitada != confirmarSenhaDigitada) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-              content: Text("As senhas não coincidem. Por favor, verifique.")),
-        );
-        return;
-      }
-      try {
-        await criarUsuarioComEmailSenha(
-          email: _controladorEmailCadastro.text.trim(),
-          senha: senhaDigitada,
-          nomeCompleto: _controladorNomeCompleto.text,
-          cpf: _controladorCPF.text,
-          cidade: _controladorCidade.text,
-          bio: _controladorBio.text,
-          genero: _generoSelecionado?.name,
-          dataNascimento: _dataNascimento?.toIso8601String(),
-        );
+Future<void> _cadastrarUsuario() async {
+  if (_chaveFormulario.currentState!.validate()) {
+    if (!_aceitouTermos) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Você deve aceitar os Termos de Uso e Políticas de Privacidade.")),
+      );
+      return;
+    }
+
+    final String senhaDigitada = _controladorSenhaCadastro.text.trim();
+    final String confirmarSenhaDigitada = _controladorConfirmarSenha.text.trim();
+    
+    if (senhaDigitada != confirmarSenhaDigitada) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("As senhas não coincidem. Por favor, verifique.")),
+      );
+      return;
+    }
+
+    final authController = Provider.of<AuthController>(context, listen: false);
+    
+    final usuario = Usuario(
+      nomeCompleto: _controladorNomeCompleto.text.trim(),
+      email: _controladorEmailCadastro.text.trim(),
+      cpf: _controladorCPF.text.trim(),
+      cidade: _controladorCidade.text.trim(),
+      bio: _controladorBio.text.trim(),
+      genero: _generoSelecionado?.toString().split('.').last,
+      dataNascimento: _dataNascimento,
+    );
+
+    try {
+      await authController.cadastrar(usuario, senhaDigitada);
+      
+      if (authController.errorMessage == null) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text("Cadastro realizado com sucesso!")),
         );
+        
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => const TelaPrincipal()),
+          MaterialPageRoute(builder: (context) => const TelaProcuraTrocas()),
         );
-      } on FirebaseAuthException catch (e) {
-        String mensagemDeErro;
-        if (e.code == 'weak-password') {
-          mensagemDeErro = 'A senha fornecida é muito fraca.';
-        } else if (e.code == 'email-already-in-use') {
-          mensagemDeErro = 'Já existe uma conta com este e-mail.';
-        } else if (e.code == 'invalid-email') {
-          mensagemDeErro = 'O formato do e-mail é inválido.';
-        } else {
-          mensagemDeErro = 'Ocorreu um erro no cadastro. Tente novamente.';
-        }
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text(mensagemDeErro)));
-      } catch (e) {
+      } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-              content: Text('Ocorreu um erro geral. Tente novamente.')),
+          SnackBar(content: Text(authController.errorMessage!)),
         );
       }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Erro: $e")),
+      );
     }
   }
+}
 
   void _voltarParaLogin() {
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(builder: (context) => const TelaLogin()),
+    );
+  }
+
+  Widget _campoTexto(TextEditingController controller, String hint, TextInputType type, {int maxLines = 1}) {
+    return TextFormField(
+      controller: controller,
+      decoration: _decoracao(hint),
+      keyboardType: type,
+      maxLines: maxLines,
+      validator: (valor) => Validators.validarCampoObrigatorio(valor, hint),
+    );
+  }
+
+  Widget _campoSenha(TextEditingController controller, String hint) {
+    return TextFormField(
+      controller: controller,
+      decoration: _decoracao(hint),
+      obscureText: true,
+      validator: (valor) => Validators.validarSenha(valor, _tamanhoMinimoSenha),
+    );
+  }
+
+  InputDecoration _decoracao(String hint, {IconData? icone}) {
+    return InputDecoration(
+      hintText: hint,
+      hintStyle: TextStyle(color: AppColors.cinza),
+      border: OutlineInputBorder(borderRadius: BorderRadius.circular(8.0)),
+      filled: true,
+      fillColor: AppColors.white,
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+      suffixIcon: icone != null ? Icon(icone, color: AppColors.roxo) : null,
+    );
+  }
+
+  Widget _radioGenero(String titulo, GeneroOpcao valor) {
+    return Expanded(
+      child: RadioListTile<GeneroOpcao>(
+        title: Text(titulo, style: TextStyle(color: AppColors.black, fontSize: 14)),
+        value: valor,
+        groupValue: _generoSelecionado,
+        onChanged: (GeneroOpcao? novoValor) => setState(() => _generoSelecionado = novoValor),
+        activeColor: AppColors.roxo,
+        contentPadding: EdgeInsets.zero,
+        dense: true,
+      ),
     );
   }
 
@@ -240,22 +251,18 @@ class _TelaCadastroState extends State<TelaCadastro> {
                                 ? NetworkImage(_urlImagemWeb!) as ImageProvider
                                 : null,
                         child: _imagemSelecionada == null && _urlImagemWeb == null
-                            ? Icon(Icons.camera_alt,
-                                size: 40, color: AppColors.cinza)
+                            ? Icon(Icons.camera_alt, size: 40, color: AppColors.cinza)
                             : null,
                       ),
                     ),
                     const SizedBox(height: 10),
-                    _campoTexto(_controladorNomeCompleto, "Nome Completo",
-                        TextInputType.text),
+                    _campoTexto(_controladorNomeCompleto, "Nome Completo", TextInputType.text),
                     const SizedBox(height: 8),
                     Align(
                       alignment: Alignment.centerLeft,
                       child: Padding(
                         padding: const EdgeInsets.only(left: 4.0),
-                        child: Text("Gênero",
-                            style: TextStyle(
-                                fontSize: 14, color: AppColors.black)),
+                        child: Text("Gênero", style: TextStyle(fontSize: 14, color: AppColors.black)),
                       ),
                     ),
                     const SizedBox(height: 5),
@@ -264,43 +271,35 @@ class _TelaCadastroState extends State<TelaCadastro> {
                       children: [
                         _radioGenero("Masculino", GeneroOpcao.masculino),
                         _radioGenero("Feminino", GeneroOpcao.feminino),
-                        _radioGenero(
-                            "Prefiro Não Dizer", GeneroOpcao.naoInformar),
+                        _radioGenero("Prefiro Não Dizer", GeneroOpcao.naoInformar),
                       ],
                     ),
                     const SizedBox(height: 8),
                     TextFormField(
                       controller: _controladorDataNasc,
-                      decoration: _decoracao("Data de Nascimento",
-                          icone: Icons.calendar_today),
+                      decoration: _decoracao("Data de Nascimento", icone: Icons.calendar_today),
                       readOnly: true,
                       onTap: () => _selecionarData(context),
-                      validator: (valor) {
-                        if (valor == null || valor.isEmpty) {
-                          return 'Por favor, selecione sua data de nascimento.';
-                        }
-                        if (_dataNascimento != null &&
-                            _calcularIdade(_dataNascimento!) < 18) {
-                          return 'Você deve ter pelo menos 18 anos para se cadastrar.';
-                        }
-                        return null;
-                      },
+                      validator: (valor) => Validators.validarDataNascimento(_dataNascimento),
                     ),
                     const SizedBox(height: 8),
                     TextFormField(
                       controller: _controladorCPF,
                       decoration: _decoracao("CPF"),
                       keyboardType: TextInputType.number,
-                      validator: _validarCPF,
+                      inputFormatters: [
+                        FilteringTextInputFormatter.digitsOnly,
+                        LengthLimitingTextInputFormatter(14),
+                        CPFInputFormatter(),
+                      ],
+                      validator: (valor) => Validators.validarCPF(valor),
                     ),
                     const SizedBox(height: 8),
                     _campoTexto(_controladorCidade, "Cidade", TextInputType.text),
                     const SizedBox(height: 8),
-                    _campoTexto(_controladorBio, "Bio", TextInputType.text,
-                        maxLines: 2), // Reduzi as linhas da Bio
+                    _campoTexto(_controladorBio, "Bio", TextInputType.text, maxLines: 2),
                     const SizedBox(height: 8),
-                    _campoTexto(_controladorEmailCadastro, "E-mail",
-                        TextInputType.emailAddress),
+                    _campoTexto(_controladorEmailCadastro, "E-mail", TextInputType.emailAddress),
                     const SizedBox(height: 8),
                     _campoSenha(_controladorSenhaCadastro, "Senha"),
                     const SizedBox(height: 8),
@@ -320,28 +319,30 @@ class _TelaCadastroState extends State<TelaCadastro> {
                           },
                         ),
                         const Expanded(
-                            child: Text(
-                                "Aceito os Termos de Uso e as Políticas de Privacidade",
-                                style: TextStyle(fontSize: 14))),
+                          child: Text(
+                            "Aceito os Termos de Uso e as Políticas de Privacidade",
+                            style: TextStyle(fontSize: 14),
+                          ),
+                        ),
                       ],
                     ),
                     const SizedBox(height: 16),
                     ElevatedButton(
                       onPressed: _cadastrarUsuario,
                       style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.roxo,
-                          minimumSize: const Size(250, 50)),
-                      child: const Text("Cadastrar",
-                          style: TextStyle(fontSize: 24, color: Colors.white)),
+                        backgroundColor: AppColors.roxo,
+                        minimumSize: const Size(250, 50),
+                      ),
+                      child: const Text("Cadastrar", style: TextStyle(fontSize: 24, color: Colors.white)),
                     ),
                     const SizedBox(height: 8),
                     ElevatedButton(
                       onPressed: _voltarParaLogin,
                       style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.roxo,
-                          minimumSize: const Size(150, 50)),
-                      child: const Text("Voltar",
-                          style: TextStyle(fontSize: 24, color: Colors.white)),
+                        backgroundColor: AppColors.roxo,
+                        minimumSize: const Size(150, 50),
+                      ),
+                      child: const Text("Voltar", style: TextStyle(fontSize: 24, color: Colors.white)),
                     ),
                     const SizedBox(height: 20),
                   ],
@@ -350,65 +351,6 @@ class _TelaCadastroState extends State<TelaCadastro> {
             ),
           ),
         ),
-      ),
-    );
-  }
-
-  Widget _campoTexto(TextEditingController controller, String hint,
-      TextInputType type,
-      {int maxLines = 1}) {
-    return TextFormField(
-      controller: controller,
-      decoration: _decoracao(hint),
-      keyboardType: type,
-      maxLines: maxLines,
-      validator: (valor) {
-        if (valor == null || valor.isEmpty) return 'Por favor, insira $hint';
-        return null;
-      },
-    );
-  }
-
-  Widget _campoSenha(TextEditingController controller, String hint) {
-    return TextFormField(
-      controller: controller,
-      decoration: _decoracao(hint),
-      obscureText: true,
-      validator: (valor) {
-        if (valor == null || valor.isEmpty) return 'Por favor, insira $hint';
-        if (valor.length < _tamanhoMinimoSenha) {
-          return 'Senha deve ter ao menos $_tamanhoMinimoSenha caracteres';
-        }
-        return null;
-      },
-    );
-  }
-
-  InputDecoration _decoracao(String hint, {IconData? icone}) {
-    return InputDecoration(
-      hintText: hint,
-      hintStyle: TextStyle(color: AppColors.cinza),
-      border: OutlineInputBorder(borderRadius: BorderRadius.circular(8.0)),
-      filled: true,
-      fillColor: AppColors.white,
-      contentPadding:
-          const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-      suffixIcon: icone != null ? Icon(icone, color: AppColors.roxo) : null,
-    );
-  }
-
-  Widget _radioGenero(String titulo, GeneroOpcao valor) {
-    return Expanded(
-      child: RadioListTile<GeneroOpcao>(
-        title:
-            Text(titulo, style: TextStyle(color: AppColors.black, fontSize: 14)),
-        value: valor,
-        groupValue: _generoSelecionado,
-        onChanged: (GeneroOpcao? novoValor) =>
-            setState(() => _generoSelecionado = novoValor),
-        activeColor: AppColors.roxo,
-        contentPadding: EdgeInsets.zero,
-        dense: true,
       ),
     );
   }

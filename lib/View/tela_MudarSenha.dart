@@ -1,412 +1,160 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_database/firebase_database.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:provider/provider.dart';
 import 'package:skilmatch/Controller/colors.dart';
-import 'package:skilmatch/View/tela_MinhasTrocas.dart';
-import 'package:skilmatch/View/tela_perfil.dart';
-import 'package:skilmatch/View/tela_mensagens.dart';
+import 'package:skilmatch/Controller/auth_controller.dart';
 
-class TelaPrincipal extends StatefulWidget {
-  const TelaPrincipal({super.key});
+class MudarSenha extends StatefulWidget {
+  const MudarSenha({super.key});
 
   @override
-  State<TelaPrincipal> createState() => _TelaPrincipalState();
+  State<MudarSenha> createState() => _MudarSenhaState();
 }
 
-class _TelaPrincipalState extends State<TelaPrincipal> {
-  int _currentIndex = 0;
+class _MudarSenhaState extends State<MudarSenha> {
+  final TextEditingController _senhaController = TextEditingController();
+  final TextEditingController _confirmarSenhaController = TextEditingController();
 
-  final List<Widget> _telas = [
-    TelaProcurar(),
-    const TelaMinhastrocas(),
-    const SizedBox.shrink(),
-    const TelaMensagens(),
-    const TelaPerfil(),
-  ];
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.fundo,
-      body: _telas[_currentIndex],
-      bottomNavigationBar: Container(
-        height: 70,
-        decoration: BoxDecoration(
-          color: AppColors.fundo,
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.1),
-              blurRadius: 4,
-              offset: const Offset(0, -2),
-            ),
-          ],
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            _buildNavItem(Icons.search, 'Procurar Trocas', 0),
-            _buildNavItem(Icons.swap_horiz, 'Minhas Trocas', 1),
-            _buildImageItem(),
-            _buildNavItem(Icons.chat_bubble_outline, 'Mensagens', 3),
-            _buildNavItem(Icons.person_outline, 'Perfil', 4),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildNavItem(IconData icon, String label, int index) {
-    return Expanded(
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: () {
-            setState(() {
-              _currentIndex = index;
-            });
-          },
-          child: Container(
-            height: 70,
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  icon,
-                  size: 30,
-                  color: _currentIndex == index ? AppColors.roxo : AppColors.black.withOpacity(0.6),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  label,
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: _currentIndex == index ? AppColors.roxo : AppColors.black.withOpacity(0.6),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildImageItem() {
-    return Expanded(
-      child: Container(
-        height: 70,
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Image.asset(
-              'assets/images/emoji_skillmatch.png',
-              width: 40,
-              height: 40,
-            ),
-            const SizedBox(height: 4),
-            const Text(
-              '',
-              style: TextStyle(fontSize: 12),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class TelaProcurar extends StatefulWidget {
-  @override
-  _TelaProcurarState createState() => _TelaProcurarState();
-}
-
-class _TelaProcurarState extends State<TelaProcurar> {
-  final TextEditingController _controladorBuscarHabilidades = TextEditingController();
-  final DatabaseReference _database = FirebaseDatabase.instance.ref();
-  final FirebaseAuth _auth = FirebaseAuth.instance;
-  String _searchQuery = '';
-  List<Map<String, dynamic>> _users = [];
-  bool _isLoading = false;
-  bool _noUsersFound = false;
-  String? _currentUserId;
-
-  @override
-  void initState() {
-    super.initState();
-    print('🟡 initState chamado');
-    _getCurrentUser();
-  }
-
-  @override
-  void dispose() {
-    _controladorBuscarHabilidades.dispose();
-    super.dispose();
-  }
-
-  void _getCurrentUser() {
-    print('🟢 _getCurrentUser() chamado');
-    final User? user = _auth.currentUser;
-    print('🔵 Usuário do Auth: $user');
-    print('🔵 UID do usuário: ${user?.uid}');
+  void _confirmarRedefinicao() {
+    final authController = Provider.of<AuthController>(context, listen: false);
+    authController.clearError();
     
-    if (user != null) {
-      print('✅ Usuário logado encontrado: ${user.uid}');
-      if (mounted) {
-        setState(() {
-          _currentUserId = user.uid;
-        });
-      } else {
-        _currentUserId = user.uid;
+    authController.updatePassword(
+      _senhaController.text,
+      _confirmarSenhaController.text,
+      context,
+    ).then((_) {
+      if (authController.errorMessage == null) {
+        _senhaController.clear();
+        _confirmarSenhaController.clear();
       }
-    } else {
-      print('❌ NENHUM usuário logado encontrado!');
-    }
-    _carregarUsuarios();
-  }
-
-  Future<void> _carregarUsuarios() async {
-    if (!mounted) return;
-    
-    setState(() {
-      _isLoading = true;
-      _noUsersFound = false;
     });
-
-    try {
-      DatabaseReference ref = _database.child('usuarios');
-      DatabaseEvent event = await ref.once();
-      
-      DataSnapshot snapshot = event.snapshot;
-      
-      if (snapshot.value != null) {
-        Map<dynamic, dynamic> usersMap = snapshot.value as Map<dynamic, dynamic>;
-        List<Map<String, dynamic>> allUsers = [];
-        
-        print('👥 Total de usuários no banco: ${usersMap.length}');
-        print('🔑 CurrentUserId para filtrar: $_currentUserId');
-        
-        usersMap.forEach((key, value) {
-          print('---');
-          print('🔍 Analisando usuário: $key');
-          
-          if (_currentUserId != null && key.toString() == _currentUserId) {
-            print('🚫 PULANDO - É o usuário logado');
-            return;
-          } else {
-            print('✅ ADICIONANDO - Não é o usuário logado');
-          }
-          
-          Map<String, dynamic> userData = {};
-          (value as Map<Object?, Object?>).forEach((k, v) {
-            userData[k.toString()] = v;
-          });
-          
-          allUsers.add({
-            'id': key.toString(),
-            ...userData
-          });
-        });
-
-        List<Map<String, dynamic>> filteredUsers;
-        if (_searchQuery.isEmpty) {
-          filteredUsers = allUsers;
-        } else {
-          filteredUsers = allUsers.where((user) {
-            final String nome = user['nomeCompleto']?.toString().toLowerCase() ?? '';
-            final String bio = user['bio']?.toString().toLowerCase() ?? '';
-            final String cidade = user['cidade']?.toString().toLowerCase() ?? '';
-            
-            return nome.contains(_searchQuery.toLowerCase()) || 
-                   bio.contains(_searchQuery.toLowerCase()) ||
-                   cidade.contains(_searchQuery.toLowerCase());
-          }).toList();
-        }
-
-        if (mounted) {
-          setState(() {
-            _users = filteredUsers;
-            _noUsersFound = filteredUsers.isEmpty && _searchQuery.isNotEmpty;
-            _isLoading = false;
-          });
-        }
-      } else {
-        if (mounted) {
-          setState(() {
-            _users = [];
-            _noUsersFound = true;
-            _isLoading = false;
-          });
-        }
-      }
-    } catch (e) {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-          _noUsersFound = true;
-        });
-      }
-    }
-  }
-
-  void _onSearchChanged(String value) {
-    setState(() {
-      _searchQuery = value;
-    });
-    _carregarUsuarios();
   }
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(16.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: <Widget>[
-          const SizedBox(height: 30),
-          Text(
-            "Procurar Trocas",
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              color: AppColors.black,
-              fontSize: 40,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(height: 20),
-          TextFormField(
-            controller: _controladorBuscarHabilidades,
-            onChanged: _onSearchChanged,
-            decoration: InputDecoration(
-              hintText: "Buscar por nome, bio ou cidade",
-              hintStyle: TextStyle(color: AppColors.cinza),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(50.0),
-                borderSide: BorderSide.none,
-              ),
-              filled: true,
-              fillColor: AppColors.white,
-              contentPadding: const EdgeInsets.symmetric(
-                horizontal: 20.0,
-                vertical: 12.0,
-              ),
-              prefixIcon: const Icon(Icons.search),
-            ),
-            keyboardType: TextInputType.text,
-          ),
-          const SizedBox(height: 20),
-          
-          if (_isLoading)
-            Center(child: CircularProgressIndicator(color: AppColors.roxo)),
-          
-          if (_noUsersFound)
-            Center(
-              child: Text(
-                "Nenhum usuário encontrado",
-                style: TextStyle(
-                  color: AppColors.black,
-                  fontSize: 16,
-                ),
-              ),
-            ),
-          
-          if (!_isLoading && !_noUsersFound && _users.isNotEmpty)
-            Text(
-              _searchQuery.isEmpty ? "Todos os usuários" : "Resultados da busca",
-              style: TextStyle(
-                color: AppColors.black,
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          
-          const SizedBox(height: 10),
-          
-          if (!_isLoading)
-            Column(
-              children: _users.map((user) => _buildUserCard(
-                name: user['nomeCompleto']?.toString() ?? 'Nome não informado',
-                location: user['cidade']?.toString() ?? 'Cidade não informada',
-                skill: user['bio']?.toString() ?? 'Bio não informada',
-                userId: user['id'] ?? '',
-              )).toList(),
-            ),
-
-          if (!_isLoading && _searchQuery.isEmpty && _users.isEmpty)
-            Center(
-              child: Text(
-                "Nenhum usuário cadastrado",
-                style: TextStyle(
-                  color: AppColors.black,
-                  fontSize: 16,
-                ),
-              ),
-            ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildUserCard({
-    required String name,
-    required String location,
-    required String skill,
-    required String userId,
-  }) {
-    return Card(
-      margin: const EdgeInsets.only(bottom: 12),
-      child: Padding(
-        padding: const EdgeInsets.all(12.0),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Expanded(
+    return Consumer<AuthController>(
+      builder: (context, authController, child) {
+        return Scaffold(
+          backgroundColor: AppColors.fundo,
+          body: Center(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(16.0),
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  Text(
-                    name,
-                    style: const TextStyle(
-                      fontSize: 18,
+                  const Text(
+                    "Redefinir Senha",
+                    style: TextStyle(
+                      fontSize: 36,
+                      color: AppColors.black,
                       fontWeight: FontWeight.bold,
                     ),
+                    textAlign: TextAlign.center,
                   ),
-                  Text(location),
-                  const SizedBox(height: 4),
-                  Text(
-                    skill,
-                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  const SizedBox(height: 40),
+                  SizedBox(
+                    width: 300,
+                    child: TextFormField(
+                      controller: _senhaController,
+                      obscureText: true,
+                      decoration: InputDecoration(
+                        hintText: "Nova Senha",
+                        hintStyle: const TextStyle(color: AppColors.cinza),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8.0),
+                        ),
+                        filled: true,
+                        fillColor: AppColors.white,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  SizedBox(
+                    width: 300,
+                    child: TextFormField(
+                      controller: _confirmarSenhaController,
+                      obscureText: true,
+                      decoration: InputDecoration(
+                        hintText: "Confirmar Nova Senha",
+                        hintStyle: const TextStyle(color: AppColors.cinza),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8.0),
+                        ),
+                        filled: true,
+                        fillColor: AppColors.white,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 40),
+                  if (authController.errorMessage != null)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 16.0),
+                      child: Text(
+                        authController.errorMessage!,
+                        style: const TextStyle(
+                          color: Colors.red,
+                          fontSize: 16,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  SizedBox(
+                    width: 300,
+                    height: 60,
+                    child: authController.isLoading
+                        ? const Center(child: CircularProgressIndicator(color: AppColors.roxo))
+                        : ElevatedButton(
+                            onPressed: _confirmarRedefinicao,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: AppColors.roxo,
+                              foregroundColor: Colors.white,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8.0),
+                              ),
+                            ),
+                            child: const Text(
+                              "Confirmar Redefinição",
+                              style: TextStyle(fontSize: 20),
+                            ),
+                          ),
+                  ),
+                  const SizedBox(height: 20),
+                  SizedBox(
+                    width: 150,
+                    height: 60,
+                    child: ElevatedButton(
+                      onPressed: authController.isLoading
+                          ? null
+                          : () {
+                              Navigator.pop(context);
+                            },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.roxo,
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8.0),
+                        ),
+                      ),
+                      child: const Text(
+                        "Voltar",
+                        style: TextStyle(fontSize: 20),
+                      ),
+                    ),
                   ),
                 ],
               ),
             ),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                Container(
-                  width: 60,
-                  height: 60,
-                  decoration: BoxDecoration(
-                    color: AppColors.cinza,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: const Center(child: Text("Foto")),
-                ),
-                const SizedBox(height: 8),
-                ElevatedButton(
-                  onPressed: () {},
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.roxo,
-                    foregroundColor: AppColors.white,
-                  ),
-                  child: const Text("Propor Troca"),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
+  }
+
+  @override
+  void dispose() {
+    _senhaController.dispose();
+    _confirmarSenhaController.dispose();
+    super.dispose();
   }
 }
