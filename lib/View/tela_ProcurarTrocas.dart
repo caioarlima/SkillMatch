@@ -24,7 +24,7 @@ class _TelaProcuraTrocasState extends State<TelaProcuraTrocas> {
   int _currentIndex = 0;
 
   final List<Widget> _telas = [
-    const SizedBox.shrink(), // Placeholder para índice 0
+    const SizedBox.shrink(), 
     const TelaMinhastrocas(),
     const SizedBox.shrink(),
     const TelaMensagens(),

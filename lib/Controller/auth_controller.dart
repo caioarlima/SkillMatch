@@ -18,6 +18,8 @@ class AuthController with ChangeNotifier {
   String? get errorMessage => _errorMessage;
   Stream<User?> get authStateChanges => _authRepository.authStateChanges;
 
+  User? get currentUser => _auth.currentUser;
+
   static int calcularIdade(DateTime dataNascimento) {
     final hoje = DateTime.now();
     int idade = hoje.year - dataNascimento.year;
