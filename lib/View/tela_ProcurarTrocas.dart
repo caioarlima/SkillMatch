@@ -6,6 +6,7 @@ import 'package:skilmatch/Controller/colors.dart';
 import 'package:skilmatch/View/tela_MinhasTrocas.dart';
 import 'package:skilmatch/View/tela_perfil.dart';
 import 'package:skilmatch/View/tela_mensagens.dart';
+import 'package:skilmatch/View/tela_chat.dart';
 
 class TelaProcuraTrocas extends StatefulWidget {
   const TelaProcuraTrocas({super.key});
@@ -15,8 +16,7 @@ class TelaProcuraTrocas extends StatefulWidget {
 }
 
 class _TelaProcuraTrocasState extends State<TelaProcuraTrocas> {
-  final TextEditingController _controladorBuscarHabilidades =
-      TextEditingController();
+  final TextEditingController _controladorBuscarHabilidades = TextEditingController();
   final FirebaseAuth _auth = FirebaseAuth.instance;
   String _searchQuery = '';
   String? _currentUserId;
@@ -24,7 +24,7 @@ class _TelaProcuraTrocasState extends State<TelaProcuraTrocas> {
   int _currentIndex = 0;
 
   final List<Widget> _telas = [
-    const SizedBox.shrink(), 
+    const SizedBox.shrink(),
     const TelaMinhastrocas(),
     const SizedBox.shrink(),
     const TelaMensagens(),
@@ -159,6 +159,11 @@ class _TelaProcuraTrocasState extends State<TelaProcuraTrocas> {
     );
   }
 
+  String _generateChatId(String userId1, String userId2) {
+    final sortedIds = [userId1, userId2]..sort();
+    return "chat_${sortedIds[0]}_${sortedIds[1]}";
+  }
+
   @override
   Widget build(BuildContext context) {
     if (_currentIndex != 0) {
@@ -205,32 +210,40 @@ class _TelaProcuraTrocasState extends State<TelaProcuraTrocas> {
               textAlign: TextAlign.center,
               style: TextStyle(
                 color: AppColors.black,
-                fontSize: 40,
+                fontSize: 32,
                 fontWeight: FontWeight.bold,
               ),
             ),
             const SizedBox(height: 20),
-            TextFormField(
-              controller: _controladorBuscarHabilidades,
-              onChanged: _onSearchChanged,
-              decoration: InputDecoration(
-                hintText: "Buscar por nome, bio ou cidade",
-                hintStyle: TextStyle(color: AppColors.cinza),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(50.0),
-                  borderSide: BorderSide.none,
-                ),
-                filled: true,
-                fillColor: AppColors.white,
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 20.0,
-                  vertical: 12.0,
-                ),
-                prefixIcon: const Icon(Icons.search),
+            Container(
+              decoration: BoxDecoration(
+                color: AppColors.white,
+                borderRadius: BorderRadius.circular(25),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.1),
+                    blurRadius: 8,
+                    offset: Offset(0, 2),
+                  ),
+                ],
               ),
-              keyboardType: TextInputType.text,
+              child: TextField(
+                controller: _controladorBuscarHabilidades,
+                onChanged: _onSearchChanged,
+                decoration: InputDecoration(
+                  hintText: "Buscar por nome, bio ou cidade",
+                  hintStyle: TextStyle(color: AppColors.cinza),
+                  border: InputBorder.none,
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 20.0,
+                    vertical: 16.0,
+                  ),
+                  prefixIcon: Icon(Icons.search, color: AppColors.roxo),
+                ),
+                keyboardType: TextInputType.text,
+              ),
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 24),
             Consumer<UsuarioController>(
               builder: (context, usuarioController, child) {
                 if (usuarioController.isLoading)
@@ -250,9 +263,19 @@ class _TelaProcuraTrocasState extends State<TelaProcuraTrocas> {
                     usuarioController.usuarios.isEmpty &&
                     _searchQuery.isEmpty)
                   return Center(
-                    child: Text(
-                      "Nenhum usuário na sua cidade",
-                      style: TextStyle(color: AppColors.black, fontSize: 16),
+                    child: Column(
+                      children: [
+                        Icon(
+                          Icons.people_outline,
+                          size: 64,
+                          color: AppColors.cinza.withOpacity(0.5),
+                        ),
+                        SizedBox(height: 16),
+                        Text(
+                          "Nenhum usuário na sua cidade",
+                          style: TextStyle(color: AppColors.cinza, fontSize: 16),
+                        ),
+                      ],
                     ),
                   );
 
@@ -260,9 +283,19 @@ class _TelaProcuraTrocasState extends State<TelaProcuraTrocas> {
                     usuarioController.usuarios.isEmpty &&
                     _searchQuery.isNotEmpty)
                   return Center(
-                    child: Text(
-                      "Nenhum usuário encontrado",
-                      style: TextStyle(color: AppColors.black, fontSize: 16),
+                    child: Column(
+                      children: [
+                        Icon(
+                          Icons.search_off,
+                          size: 64,
+                          color: AppColors.cinza.withOpacity(0.5),
+                        ),
+                        SizedBox(height: 16),
+                        Text(
+                          "Nenhum usuário encontrado",
+                          style: TextStyle(color: AppColors.cinza, fontSize: 16),
+                        ),
+                      ],
                     ),
                   );
 
@@ -281,7 +314,7 @@ class _TelaProcuraTrocasState extends State<TelaProcuraTrocas> {
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                      const SizedBox(height: 10),
+                      const SizedBox(height: 16),
                       Column(
                         children: usuarioController.usuarios
                             .map(
@@ -289,6 +322,7 @@ class _TelaProcuraTrocasState extends State<TelaProcuraTrocas> {
                                 name: usuario.nomeCompleto,
                                 location: usuario.cidade,
                                 skill: usuario.bio,
+                                userId: usuario.id ?? '',
                               ),
                             )
                             .toList(),
@@ -333,55 +367,116 @@ class _TelaProcuraTrocasState extends State<TelaProcuraTrocas> {
     required String name,
     required String location,
     required String skill,
+    required String userId,
   }) {
-    return Card(
-      margin: const EdgeInsets.only(bottom: 12),
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 8,
+            offset: Offset(0, 2),
+          ),
+        ],
+      ),
       child: Padding(
-        padding: const EdgeInsets.all(12.0),
+        padding: const EdgeInsets.all(16.0),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
+            // Avatar do usuário
+            Container(
+              width: 60,
+              height: 60,
+              decoration: BoxDecoration(
+                color: AppColors.roxo,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Center(
+                child: Text(
+                  name[0].toUpperCase(),
+                  style: TextStyle(
+                    color: AppColors.white,
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(width: 16),
+            // Informações do usuário
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     name,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
+                      color: AppColors.black,
                     ),
                   ),
-                  Text(location),
                   const SizedBox(height: 4),
+                  Row(
+                    children: [
+                      Icon(Icons.location_on, size: 14, color: AppColors.cinza),
+                      const SizedBox(width: 4),
+                      Text(
+                        location,
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: AppColors.cinza,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
                   Text(
                     skill,
-                    style: const TextStyle(fontWeight: FontWeight.bold),
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: AppColors.black,
+                      fontWeight: FontWeight.w500,
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ],
               ),
             ),
+            // Botão Propor Troca
             Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
               children: [
-                Container(
-                  width: 60,
-                  height: 60,
-                  decoration: BoxDecoration(
-                    color: AppColors.cinza,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: const Center(child: Text("Foto")),
-                ),
-                const SizedBox(height: 8),
                 ElevatedButton(
-                  onPressed: () {},
+                  onPressed: () {
+                    final chatId = _generateChatId(_currentUserId!, userId);
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => TelaChat(
+                        outroUsuario: userId,
+                        chatId: chatId,
+                      )),
+                    );
+                  },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.roxo,
                     foregroundColor: AppColors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                   ),
-                  child: const Text("Propor Troca"),
+                  child: Text(
+                    "Propor Troca",
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                 ),
               ],
             ),

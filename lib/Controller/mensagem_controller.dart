@@ -19,6 +19,7 @@ class MensagemController with ChangeNotifier {
     
     try {
       _chats = await _repository.buscarChatsUsuario(userId);
+      print('Chats carregados: ${_chats.length}');
     } catch (e) {
       print('Erro ao carregar chats: $e');
     } finally {
@@ -41,17 +42,34 @@ class MensagemController with ChangeNotifier {
     }
   }
 
-  Future<void> enviarMensagem(String chatId, String texto, String senderId) async {
+  Future<void> enviarMensagem(String chatId, String texto, String senderId, String user1Nome, String user2Nome) async {
     try {
+      final outroUsuario = _extrairOutroUsuario(chatId, senderId);
+      await _repository.verificarECriarChat(chatId, senderId, outroUsuario, user1Nome, user2Nome);
+      
       await _repository.enviarMensagem(chatId, texto, senderId);
-      // Recarregar mensagens após enviar
       await carregarMensagens(chatId);
     } catch (e) {
       print('Erro ao enviar mensagem: $e');
+      rethrow;
     }
   }
 
-  Future<String> criarChat(String user1Id, String user2Id, String user1Nome, String user2Nome) async {
-    return await _repository.criarChat(user1Id, user2Id, user1Nome, user2Nome);
+  Future<void> criarChat(String user1Id, String user2Id, String user1Nome, String user2Nome) async {
+    await _repository.criarChat(user1Id, user2Id, user1Nome, user2Nome);
+  }
+
+  Future<void> verificarECriarChat(String chatId, String user1Id, String user2Id, String user1Nome, String user2Nome) async {
+    await _repository.verificarECriarChat(chatId, user1Id, user2Id, user1Nome, user2Nome);
+  }
+
+  String _extrairOutroUsuario(String chatId, String senderId) {
+    final parts = chatId.split('_');
+    if (parts.length >= 3) {
+      final id1 = parts[1];
+      final id2 = parts[2];
+      return id1 == senderId ? id2 : id1;
+    }
+    return '';
   }
 }
