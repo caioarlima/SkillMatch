@@ -1,3 +1,4 @@
+// Model/usuario.dart
 class Usuario {
   String? id;
   final String nomeCompleto;
@@ -7,6 +8,7 @@ class Usuario {
   final String bio;
   final String? genero;
   final DateTime? dataNascimento;
+  final String? fotoUrl;
 
   Usuario({
     this.id,
@@ -17,6 +19,7 @@ class Usuario {
     required this.bio,
     this.genero,
     this.dataNascimento,
+    this.fotoUrl,
   });
 
   Map<String, dynamic> toMap() {
@@ -29,6 +32,7 @@ class Usuario {
       'bio': bio,
       'genero': genero,
       'dataNascimento': dataNascimento?.toIso8601String(),
+      'fotoUrl': fotoUrl,
     };
   }
 
@@ -44,6 +48,7 @@ class Usuario {
       dataNascimento: map['dataNascimento'] != null 
           ? DateTime.parse(map['dataNascimento'])
           : null,
+      fotoUrl: map['fotoUrl'],
     );
   }
 
@@ -56,6 +61,7 @@ class Usuario {
     String? bio,
     String? genero,
     DateTime? dataNascimento,
+    String? fotoUrl,
   }) {
     return Usuario(
       id: id ?? this.id,
@@ -66,6 +72,7 @@ class Usuario {
       bio: bio ?? this.bio,
       genero: genero ?? this.genero,
       dataNascimento: dataNascimento ?? this.dataNascimento,
+      fotoUrl: fotoUrl ?? this.fotoUrl,
     );
   }
 }
