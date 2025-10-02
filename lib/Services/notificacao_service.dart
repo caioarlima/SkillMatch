@@ -38,7 +38,7 @@ class NotificationService {
   }
 
   static Future<void> _saveTokenToFirestore(String token) async {
-    // Implementar salvamento no Firestore
+
     print('Token FCM: $token');
   }
 

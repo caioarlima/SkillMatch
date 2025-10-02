@@ -4,7 +4,7 @@ import 'package:skilmatch/Model/usuario.dart';
 
 class UsuarioController with ChangeNotifier {
   final UsuarioRepository _usuarioRepository = UsuarioRepository();
-  
+
   List<Usuario> _usuarios = [];
   bool _isLoading = false;
   String? _errorMessage;
@@ -20,7 +20,7 @@ class UsuarioController with ChangeNotifier {
       _isLoading = true;
       _errorMessage = null;
       notifyListeners();
-      
+
       final usuario = await _usuarioRepository.buscarUsuarioPorId(userId);
       return usuario;
     } catch (e) {
@@ -32,15 +32,18 @@ class UsuarioController with ChangeNotifier {
     }
   }
 
-  Future<void> carregarUsuariosPorCidade(String cidade, {String? excludeUserId}) async {
+  Future<void> carregarUsuariosPorCidade(
+    String cidade, {
+    String? excludeUserId,
+  }) async {
     try {
       _isLoading = true;
       _errorMessage = null;
       notifyListeners();
-      
+
       _usuarios = await _usuarioRepository.buscarUsuariosPorCidade(
-        cidade, 
-        excludeUserId: excludeUserId
+        cidade,
+        excludeUserId: excludeUserId,
       );
     } catch (e) {
       _errorMessage = 'Erro ao carregar usuários: $e';
@@ -56,10 +59,10 @@ class UsuarioController with ChangeNotifier {
       _isLoading = true;
       _errorMessage = null;
       notifyListeners();
-      
+
       _usuarios = await _usuarioRepository.buscarUsuarios(
-        query, 
-        excludeUserId: excludeUserId
+        query,
+        excludeUserId: excludeUserId,
       );
     } catch (e) {
       _errorMessage = 'Erro na busca: $e';
@@ -70,12 +73,19 @@ class UsuarioController with ChangeNotifier {
     }
   }
 
-  void realizarBusca(String query, String? cidadeUsuario, {String? excludeUserId}) {
+  void realizarBusca(
+    String query,
+    String? cidadeUsuario, {
+    String? excludeUserId,
+  }) {
     _searchQuery = query;
     notifyListeners();
-    
+
     if (query.isEmpty) {
-      carregarUsuariosPorCidade(cidadeUsuario ?? '', excludeUserId: excludeUserId);
+      carregarUsuariosPorCidade(
+        cidadeUsuario ?? '',
+        excludeUserId: excludeUserId,
+      );
     } else {
       buscarUsuarios(query, excludeUserId: excludeUserId);
     }

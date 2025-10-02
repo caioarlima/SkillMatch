@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../Controller/mensagem_controller.dart';
@@ -19,6 +20,7 @@ class TelaChat extends StatefulWidget {
 class _TelaChatState extends State<TelaChat> {
   final TextEditingController _textController = TextEditingController();
   String? _nomeOutroUsuario;
+  String? _fotoOutroUsuario;
   final ScrollController _scrollController = ScrollController();
 
   @override
@@ -30,26 +32,67 @@ class _TelaChatState extends State<TelaChat> {
         listen: false,
       );
       controller.carregarMensagens(widget.chatId);
-      _carregarNomeUsuario();
+      _carregarDadosUsuario();
+      _marcarMensagensComoLidas();
     });
   }
 
-  Future<void> _carregarNomeUsuario() async {
+  void _marcarMensagensComoLidas() {
+    final authController = Provider.of<AuthController>(context, listen: false);
+    final mensagemController = Provider.of<MensagemController>(
+      context,
+      listen: false,
+    );
+    final user = authController.currentUser;
+
+    if (user != null) {
+      Future.delayed(Duration(milliseconds: 500), () {
+        mensagemController.marcarMensagensComoLidas(widget.chatId, user.uid);
+      });
+    }
+  }
+
+  Future<void> _carregarDadosUsuario() async {
     try {
       final usuarioController = Provider.of<UsuarioController>(
         context,
         listen: false,
       );
-      final usuario = await usuarioController.buscarUsuarioPorId(widget.outroUsuario);
-      
+      final usuario = await usuarioController.buscarUsuarioPorId(
+        widget.outroUsuario,
+      );
+
       if (usuario != null && mounted) {
         setState(() {
           _nomeOutroUsuario = usuario.nomeCompleto;
+          _fotoOutroUsuario = usuario.fotoUrl;
         });
       }
     } catch (e) {
-      print("Erro ao carregar nome do usuário: $e");
+      print("Erro ao carregar dados do usuário: $e");
     }
+  }
+
+  Widget _buildAppBarAvatar() {
+    if (_fotoOutroUsuario != null && _fotoOutroUsuario!.isNotEmpty) {
+      try {
+        final bytes = base64Decode(_fotoOutroUsuario!);
+        return CircleAvatar(radius: 18, backgroundImage: MemoryImage(bytes));
+      } catch (e) {
+        print("Erro ao decodificar imagem Base64: $e");
+      }
+    }
+
+    return CircleAvatar(
+      radius: 18,
+      backgroundColor: AppColors.white,
+      child: Text(
+        _nomeOutroUsuario != null && _nomeOutroUsuario!.isNotEmpty
+            ? _nomeOutroUsuario![0].toUpperCase()
+            : '?',
+        style: TextStyle(color: AppColors.roxo, fontWeight: FontWeight.bold),
+      ),
+    );
   }
 
   @override
@@ -70,19 +113,20 @@ class _TelaChatState extends State<TelaChat> {
       appBar: AppBar(
         backgroundColor: AppColors.roxo,
         foregroundColor: AppColors.white,
-        title: Text(
-          _nomeOutroUsuario ?? widget.outroUsuario,
-          style: TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.w600,
-          ),
+        title: Row(
+          children: [
+            _buildAppBarAvatar(),
+            SizedBox(width: 12),
+            Text(
+              _nomeOutroUsuario ?? widget.outroUsuario,
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+            ),
+          ],
         ),
-        centerTitle: true,
+        centerTitle: false,
         elevation: 0,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(
-            bottom: Radius.circular(12),
-          ),
+          borderRadius: BorderRadius.vertical(bottom: Radius.circular(12)),
         ),
       ),
       body: Column(
@@ -93,51 +137,54 @@ class _TelaChatState extends State<TelaChat> {
                 gradient: LinearGradient(
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
-                  colors: [
-                    AppColors.roxo.withOpacity(0.05),
-                    AppColors.fundo,
-                  ],
+                  colors: [AppColors.roxo.withOpacity(0.05), AppColors.fundo],
                 ),
               ),
               child: controller.carregando
                   ? Center(
-                      child: CircularProgressIndicator(
-                        color: AppColors.roxo,
-                      ),
+                      child: CircularProgressIndicator(color: AppColors.roxo),
                     )
                   : controller.mensagens.isEmpty
-                      ? Center(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(
-                                Icons.chat_bubble_outline,
-                                size: 64,
-                                color: AppColors.cinza.withOpacity(0.5),
-                              ),
-                              SizedBox(height: 16),
-                              Text(
-                                "Inicie uma conversa",
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  color: AppColors.cinza,
-                                ),
-                              ),
-                            ],
+                  ? Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.chat_bubble_outline,
+                            size: 64,
+                            color: AppColors.cinza.withOpacity(0.5),
                           ),
-                        )
-                      : ListView.builder(
-                          controller: _scrollController,
-                          padding: EdgeInsets.all(16),
-                          itemCount: controller.mensagens.length,
-                          itemBuilder: (context, index) {
-                            final mensagem = controller.mensagens[index];
-                            return _BalaoMensagem(mensagem: mensagem, meuUid: meuUid);
-                          },
-                        ),
+                          SizedBox(height: 16),
+                          Text(
+                            "Inicie uma conversa",
+                            style: TextStyle(
+                              fontSize: 16,
+                              color: AppColors.cinza,
+                            ),
+                          ),
+                        ],
+                      ),
+                    )
+                  : ListView.builder(
+                      controller: _scrollController,
+                      padding: EdgeInsets.all(16),
+                      itemCount: controller.mensagens.length,
+                      itemBuilder: (context, index) {
+                        final mensagem = controller.mensagens[index];
+                        return _BalaoMensagem(
+                          mensagem: mensagem,
+                          meuUid: meuUid,
+                        );
+                      },
+                    ),
             ),
           ),
-          _CampoEnvio(chatId: widget.chatId, meuUid: meuUid, outroUsuario: widget.outroUsuario),
+          _CampoEnvio(
+            chatId: widget.chatId,
+            meuUid: meuUid,
+            outroUsuario: widget.outroUsuario,
+            onMensagemEnviada: _marcarMensagensComoLidas,
+          ),
         ],
       ),
     );
@@ -153,11 +200,14 @@ class _BalaoMensagem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isEu = mensagem.senderId == meuUid;
+    final foiLida = mensagem.visualizadaPor.isNotEmpty;
 
     return Container(
       margin: EdgeInsets.symmetric(vertical: 4),
       child: Row(
-        mainAxisAlignment: isEu ? MainAxisAlignment.end : MainAxisAlignment.start,
+        mainAxisAlignment: isEu
+            ? MainAxisAlignment.end
+            : MainAxisAlignment.start,
         children: [
           if (!isEu) SizedBox(width: 8),
           Flexible(
@@ -179,13 +229,42 @@ class _BalaoMensagem extends StatelessWidget {
                   ),
                 ],
               ),
-              child: Text(
-                mensagem.texto,
-                style: TextStyle(
-                  color: isEu ? AppColors.white : AppColors.black,
-                  fontSize: 14,
-                  height: 1.4,
-                ),
+              child: Column(
+                crossAxisAlignment: isEu
+                    ? CrossAxisAlignment.end
+                    : CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    mensagem.texto,
+                    style: TextStyle(
+                      color: isEu ? AppColors.white : AppColors.black,
+                      fontSize: 14,
+                      height: 1.4,
+                    ),
+                  ),
+                  if (isEu && foiLida)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 4),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          Icon(
+                            Icons.done_all,
+                            size: 12,
+                            color: AppColors.white.withOpacity(0.7),
+                          ),
+                          SizedBox(width: 2),
+                          Text(
+                            'Lida',
+                            style: TextStyle(
+                              fontSize: 10,
+                              color: AppColors.white.withOpacity(0.7),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                ],
               ),
             ),
           ),
@@ -200,8 +279,14 @@ class _CampoEnvio extends StatefulWidget {
   final String chatId;
   final String meuUid;
   final String outroUsuario;
+  final VoidCallback onMensagemEnviada;
 
-  const _CampoEnvio({required this.chatId, required this.meuUid, required this.outroUsuario});
+  const _CampoEnvio({
+    required this.chatId,
+    required this.meuUid,
+    required this.outroUsuario,
+    required this.onMensagemEnviada,
+  });
 
   @override
   State<_CampoEnvio> createState() => _CampoEnvioState();
@@ -239,7 +324,10 @@ class _CampoEnvioState extends State<_CampoEnvio> {
                   hintText: 'Digite uma mensagem...',
                   hintStyle: TextStyle(color: AppColors.cinza),
                   border: InputBorder.none,
-                  contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  contentPadding: EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 12,
+                  ),
                 ),
                 style: TextStyle(color: AppColors.black),
                 maxLines: 3,
@@ -267,10 +355,17 @@ class _CampoEnvioState extends State<_CampoEnvio> {
     if (_textController.text.trim().isEmpty) return;
 
     final controller = Provider.of<MensagemController>(context, listen: false);
-    final usuarioController = Provider.of<UsuarioController>(context, listen: false);
-    
-    final meuUsuario = await usuarioController.buscarUsuarioPorId(widget.meuUid);
-    final outroUsuario = await usuarioController.buscarUsuarioPorId(widget.outroUsuario);
+    final usuarioController = Provider.of<UsuarioController>(
+      context,
+      listen: false,
+    );
+
+    final meuUsuario = await usuarioController.buscarUsuarioPorId(
+      widget.meuUid,
+    );
+    final outroUsuario = await usuarioController.buscarUsuarioPorId(
+      widget.outroUsuario,
+    );
 
     await controller.enviarMensagem(
       widget.chatId,
@@ -278,9 +373,12 @@ class _CampoEnvioState extends State<_CampoEnvio> {
       widget.meuUid,
       meuUsuario?.nomeCompleto ?? 'Usuário',
       outroUsuario?.nomeCompleto ?? 'Usuário',
+      meuUsuario?.fotoUrl ?? '',
+      outroUsuario?.fotoUrl ?? '',
     );
 
     _textController.clear();
+    widget.onMensagemEnviada();
   }
 
   @override

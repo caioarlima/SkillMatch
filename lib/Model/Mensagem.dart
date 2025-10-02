@@ -4,6 +4,7 @@ class Mensagem {
   final String senderId;
   final DateTime timestamp;
   final bool lida;
+  final List<String> visualizadaPor;
 
   Mensagem({
     required this.mensagemId,
@@ -11,6 +12,7 @@ class Mensagem {
     required this.senderId,
     required this.timestamp,
     this.lida = false,
+    this.visualizadaPor = const [],
   });
 
   Map<String, dynamic> toMap() {
@@ -19,6 +21,7 @@ class Mensagem {
       'senderId': senderId,
       'timestamp': timestamp,
       'lida': lida,
+      'visualizadaPor': visualizadaPor,
     };
   }
 
@@ -29,6 +32,25 @@ class Mensagem {
       senderId: map['senderId'],
       timestamp: map['timestamp'].toDate(),
       lida: map['lida'] ?? false,
+      visualizadaPor: List<String>.from(map['visualizadaPor'] ?? []),
+    );
+  }
+
+  Mensagem copyWith({
+    String? mensagemId,
+    String? texto,
+    String? senderId,
+    DateTime? timestamp,
+    bool? lida,
+    List<String>? visualizadaPor,
+  }) {
+    return Mensagem(
+      mensagemId: mensagemId ?? this.mensagemId,
+      texto: texto ?? this.texto,
+      senderId: senderId ?? this.senderId,
+      timestamp: timestamp ?? this.timestamp,
+      lida: lida ?? this.lida,
+      visualizadaPor: visualizadaPor ?? this.visualizadaPor,
     );
   }
 }

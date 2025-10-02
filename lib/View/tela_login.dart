@@ -26,24 +26,26 @@ class _TelaLoginState extends State<TelaLogin> {
     super.dispose();
   }
 
-Future<void> _fazerLogin(BuildContext context, AuthController authController) async {
-  if (_chaveFormulario.currentState!.validate()) {
-    try {
-      await authController.login(
-        _controladorEmail.text.trim(),
-        _controladorSenha.text.trim(),
-      );
-      
-      if (authController.errorMessage == null) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => const TelaProcuraTrocas()),
+  Future<void> _fazerLogin(
+    BuildContext context,
+    AuthController authController,
+  ) async {
+    if (_chaveFormulario.currentState!.validate()) {
+      try {
+        await authController.login(
+          _controladorEmail.text.trim(),
+          _controladorSenha.text.trim(),
         );
-      }
-    } catch (e) {
+
+        if (authController.errorMessage == null) {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => const TelaProcuraTrocas()),
+          );
+        }
+      } catch (e) {}
     }
   }
-}
 
   @override
   Widget build(BuildContext context) {
@@ -83,10 +85,15 @@ Future<void> _fazerLogin(BuildContext context, AuthController authController) as
                   decoration: InputDecoration(
                     hintText: "Email",
                     hintStyle: TextStyle(color: AppColors.cinza),
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(8.0)),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8.0),
+                    ),
                     filled: true,
                     fillColor: AppColors.white,
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 16.0,
+                      vertical: 12.0,
+                    ),
                   ),
                   keyboardType: TextInputType.emailAddress,
                   validator: Validators.validarEmail,
@@ -98,10 +105,15 @@ Future<void> _fazerLogin(BuildContext context, AuthController authController) as
                   decoration: InputDecoration(
                     hintText: "Senha",
                     hintStyle: TextStyle(color: AppColors.cinza),
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(8.0)),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8.0),
+                    ),
                     filled: true,
                     fillColor: AppColors.white,
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 16.0,
+                      vertical: 12.0,
+                    ),
                   ),
                   validator: (valor) => Validators.validarSenha(valor, 6),
                 ),
@@ -118,7 +130,9 @@ Future<void> _fazerLogin(BuildContext context, AuthController authController) as
                   onTap: () {
                     Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (context) => const TelaEsqueciSenha()),
+                      MaterialPageRoute(
+                        builder: (context) => const TelaEsqueciSenha(),
+                      ),
                     );
                   },
                   child: Text(
@@ -133,15 +147,25 @@ Future<void> _fazerLogin(BuildContext context, AuthController authController) as
                 ),
                 const SizedBox(height: 30),
                 ElevatedButton(
-                  onPressed: authController.isLoading ? null : () => _fazerLogin(context, authController),
+                  onPressed: authController.isLoading
+                      ? null
+                      : () => _fazerLogin(context, authController),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.roxo,
                     minimumSize: const Size(250, 60),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.0)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8.0),
+                    ),
                   ),
                   child: authController.isLoading
                       ? CircularProgressIndicator(color: AppColors.white)
-                      : Text("Entrar", style: TextStyle(fontSize: 30, color: AppColors.white)),
+                      : Text(
+                          "Entrar",
+                          style: TextStyle(
+                            fontSize: 30,
+                            color: AppColors.white,
+                          ),
+                        ),
                 ),
                 const SizedBox(height: 30),
                 Text(
@@ -154,7 +178,9 @@ Future<void> _fazerLogin(BuildContext context, AuthController authController) as
                   onTap: () {
                     Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (context) => const TelaCadastro()),
+                      MaterialPageRoute(
+                        builder: (context) => const TelaCadastro(),
+                      ),
                     );
                   },
                   child: Text(

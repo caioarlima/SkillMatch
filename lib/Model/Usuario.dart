@@ -45,7 +45,7 @@ class Usuario {
       cidade: map['cidade'] ?? '',
       bio: map['bio'] ?? '',
       genero: map['genero'],
-      dataNascimento: map['dataNascimento'] != null 
+      dataNascimento: map['dataNascimento'] != null
           ? DateTime.parse(map['dataNascimento'])
           : null,
       fotoUrl: map['fotoUrl'],

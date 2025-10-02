@@ -13,7 +13,8 @@ class TelaEsqueciSenha extends StatefulWidget {
 }
 
 class _TelaEsqueciSenhaState extends State<TelaEsqueciSenha> {
-  final TextEditingController _controladorEmailRedefinicao = TextEditingController();
+  final TextEditingController _controladorEmailRedefinicao =
+      TextEditingController();
   final _chaveFormulario = GlobalKey<FormState>();
 
   @override
@@ -28,17 +29,21 @@ class _TelaEsqueciSenhaState extends State<TelaEsqueciSenha> {
     }
 
     final authController = Provider.of<AuthController>(context, listen: false);
-    
+
     try {
-      await authController.enviarEmailRedefinicao(_controladorEmailRedefinicao.text.trim());
-      
+      await authController.enviarEmailRedefinicao(
+        _controladorEmailRedefinicao.text.trim(),
+      );
+
       showDialog(
         context: context,
         builder: (context) {
           return AlertDialog(
             backgroundColor: AppColors.fundo,
             title: const Text('Sucesso!'),
-            content: const Text('Se o e-mail estiver cadastrado, um link de redefinição de senha foi enviado para ele.'),
+            content: const Text(
+              'Se o e-mail estiver cadastrado, um link de redefinição de senha foi enviado para ele.',
+            ),
             actions: [
               TextButton(
                 onPressed: () => Navigator.of(context).pop(),
@@ -98,10 +103,15 @@ class _TelaEsqueciSenhaState extends State<TelaEsqueciSenha> {
                     decoration: InputDecoration(
                       hintText: "Email",
                       hintStyle: TextStyle(color: AppColors.cinza),
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(8.0)),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8.0),
+                      ),
                       filled: true,
                       fillColor: AppColors.white,
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 16.0,
+                        vertical: 12.0,
+                      ),
                     ),
                     keyboardType: TextInputType.emailAddress,
                     validator: Validators.validarEmail,
@@ -113,11 +123,23 @@ class _TelaEsqueciSenhaState extends State<TelaEsqueciSenha> {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.roxo,
                     minimumSize: const Size(250, 60),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.0)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8.0),
+                    ),
                   ),
                   child: authController.isLoading
-                      ? const CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(Colors.white))
-                      : Text("Enviar Link", style: TextStyle(fontSize: 30, color: AppColors.white)),
+                      ? const CircularProgressIndicator(
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                            Colors.white,
+                          ),
+                        )
+                      : Text(
+                          "Enviar Link",
+                          style: TextStyle(
+                            fontSize: 30,
+                            color: AppColors.white,
+                          ),
+                        ),
                 ),
                 const SizedBox(height: 35),
                 ElevatedButton(
@@ -125,9 +147,14 @@ class _TelaEsqueciSenhaState extends State<TelaEsqueciSenha> {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.roxo,
                     minimumSize: const Size(150, 60),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.0)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8.0),
+                    ),
                   ),
-                  child: Text("Voltar", style: TextStyle(fontSize: 30, color: AppColors.white)),
+                  child: Text(
+                    "Voltar",
+                    style: TextStyle(fontSize: 30, color: AppColors.white),
+                  ),
                 ),
               ],
             ),

@@ -1,4 +1,6 @@
 import 'dart:io';
+import 'dart:convert';
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
@@ -21,18 +23,23 @@ class TelaCadastro extends StatefulWidget {
 }
 
 class _TelaCadastroState extends State<TelaCadastro> {
-  final TextEditingController _controladorNomeCompleto = TextEditingController();
-  final TextEditingController _controladorEmailCadastro = TextEditingController();
+  final TextEditingController _controladorNomeCompleto =
+      TextEditingController();
+  final TextEditingController _controladorEmailCadastro =
+      TextEditingController();
   final TextEditingController _controladorCPF = TextEditingController();
   final TextEditingController _controladorCidade = TextEditingController();
   final TextEditingController _controladorBio = TextEditingController();
-  final TextEditingController _controladorSenhaCadastro = TextEditingController();
-  final TextEditingController _controladorConfirmarSenha = TextEditingController();
+  final TextEditingController _controladorSenhaCadastro =
+      TextEditingController();
+  final TextEditingController _controladorConfirmarSenha =
+      TextEditingController();
   final TextEditingController _controladorDataNasc = TextEditingController();
   final _chaveFormulario = GlobalKey<FormState>();
-  
+
   File? _imagemSelecionada;
   String? _urlImagemWeb;
+  String? _fotoBase64;
   DateTime? _dataNascimento;
   GeneroOpcao? _generoSelecionado;
   final int _tamanhoMinimoSenha = 6;
@@ -68,9 +75,7 @@ class _TelaCadastroState extends State<TelaCadastro> {
             ),
             dialogBackgroundColor: AppColors.white,
             textButtonTheme: TextButtonThemeData(
-              style: TextButton.styleFrom(
-                foregroundColor: AppColors.roxo,
-              ),
+              style: TextButton.styleFrom(foregroundColor: AppColors.roxo),
             ),
           ),
           child: child!,
@@ -80,24 +85,43 @@ class _TelaCadastroState extends State<TelaCadastro> {
     if (dataSelecionada != null && dataSelecionada != _dataNascimento) {
       setState(() {
         _dataNascimento = dataSelecionada;
-        _controladorDataNasc.text = "${_dataNascimento!.day}/${_dataNascimento!.month}/${_dataNascimento!.year}";
+        _controladorDataNasc.text =
+            "${_dataNascimento!.day}/${_dataNascimento!.month}/${_dataNascimento!.year}";
       });
     }
   }
 
   Future<void> _pegarImagemDaGaleria() async {
     final picker = ImagePicker();
-    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+    final pickedFile = await picker.pickImage(
+      source: ImageSource.gallery,
+      imageQuality: 70,
+      maxWidth: 800,
+    );
+
     if (pickedFile != null) {
-      setState(() {
-        if (kIsWeb) {
-          _urlImagemWeb = pickedFile.path;
-          _imagemSelecionada = null;
-        } else {
-          _imagemSelecionada = File(pickedFile.path);
-          _urlImagemWeb = null;
-        }
-      });
+      try {
+        Uint8List bytes = await pickedFile.readAsBytes();
+        String base64Image = base64Encode(bytes);
+
+        setState(() {
+          if (kIsWeb) {
+            _urlImagemWeb = pickedFile.path;
+            _imagemSelecionada = null;
+          } else {
+            _imagemSelecionada = File(pickedFile.path);
+            _urlImagemWeb = null;
+          }
+          _fotoBase64 = base64Image;
+        });
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("Erro ao processar a imagem"),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     }
   }
 
@@ -109,7 +133,10 @@ class _TelaCadastroState extends State<TelaCadastro> {
           backgroundColor: AppColors.fundo,
           title: Text(
             "Termos de Uso e Políticas de Privacidade",
-            style: TextStyle(color: AppColors.roxo, fontWeight: FontWeight.bold),
+            style: TextStyle(
+              color: AppColors.roxo,
+              fontWeight: FontWeight.bold,
+            ),
           ),
           content: SingleChildScrollView(
             child: Text(
@@ -120,10 +147,7 @@ class _TelaCadastroState extends State<TelaCadastro> {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: Text(
-                "Cancelar",
-                style: TextStyle(color: AppColors.cinza),
-              ),
+              child: Text("Cancelar", style: TextStyle(color: AppColors.cinza)),
             ),
             TextButton(
               onPressed: () {
@@ -134,7 +158,10 @@ class _TelaCadastroState extends State<TelaCadastro> {
               },
               child: Text(
                 "Aceito",
-                style: TextStyle(color: AppColors.roxo, fontWeight: FontWeight.bold),
+                style: TextStyle(
+                  color: AppColors.roxo,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
           ],
@@ -148,7 +175,9 @@ class _TelaCadastroState extends State<TelaCadastro> {
       if (!_aceitouTermos) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text("Você deve aceitar os Termos de Uso e Políticas de Privacidade."),
+            content: Text(
+              "Você deve aceitar os Termos de Uso e Políticas de Privacidade.",
+            ),
             backgroundColor: AppColors.roxo,
           ),
         );
@@ -156,8 +185,9 @@ class _TelaCadastroState extends State<TelaCadastro> {
       }
 
       final String senhaDigitada = _controladorSenhaCadastro.text.trim();
-      final String confirmarSenhaDigitada = _controladorConfirmarSenha.text.trim();
-      
+      final String confirmarSenhaDigitada = _controladorConfirmarSenha.text
+          .trim();
+
       if (senhaDigitada != confirmarSenhaDigitada) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -168,8 +198,11 @@ class _TelaCadastroState extends State<TelaCadastro> {
         return;
       }
 
-      final authController = Provider.of<AuthController>(context, listen: false);
-      
+      final authController = Provider.of<AuthController>(
+        context,
+        listen: false,
+      );
+
       final usuario = Usuario(
         nomeCompleto: _controladorNomeCompleto.text.trim(),
         email: _controladorEmailCadastro.text.trim(),
@@ -178,11 +211,12 @@ class _TelaCadastroState extends State<TelaCadastro> {
         bio: _controladorBio.text.trim(),
         genero: _generoSelecionado?.toString().split('.').last,
         dataNascimento: _dataNascimento,
+        fotoUrl: _fotoBase64,
       );
 
       try {
         await authController.cadastrar(usuario, senhaDigitada);
-        
+
         if (authController.errorMessage == null) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
@@ -190,7 +224,7 @@ class _TelaCadastroState extends State<TelaCadastro> {
               backgroundColor: AppColors.roxo,
             ),
           );
-          
+
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(builder: (context) => const TelaProcuraTrocas()),
@@ -205,10 +239,7 @@ class _TelaCadastroState extends State<TelaCadastro> {
         }
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text("Erro: $e"),
-            backgroundColor: Colors.red,
-          ),
+          SnackBar(content: Text("Erro: $e"), backgroundColor: Colors.red),
         );
       }
     }
@@ -221,56 +252,15 @@ class _TelaCadastroState extends State<TelaCadastro> {
     );
   }
 
-  Widget _campoTexto(TextEditingController controller, String hint, TextInputType type, {int maxLines = 1}) {
-    return TextFormField(
-      controller: controller,
-      decoration: _decoracao(hint),
-      keyboardType: type,
-      maxLines: maxLines,
-      validator: (valor) => Validators.validarCampoObrigatorio(valor, hint),
-    );
-  }
-
-  Widget _campoSenha(TextEditingController controller, String hint) {
-    return TextFormField(
-      controller: controller,
-      decoration: _decoracao(hint),
-      obscureText: true,
-      validator: (valor) => Validators.validarSenha(valor, _tamanhoMinimoSenha),
-    );
-  }
-
-  InputDecoration _decoracao(String hint, {IconData? icone}) {
-    return InputDecoration(
-      hintText: hint,
-      hintStyle: TextStyle(color: AppColors.cinza),
-      border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(8.0),
-        borderSide: BorderSide(color: AppColors.roxo),
-      ),
-      focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(8.0),
-        borderSide: BorderSide(color: AppColors.roxo, width: 2),
-      ),
-      filled: true,
-      fillColor: AppColors.white,
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-      suffixIcon: icone != null ? Icon(icone, color: AppColors.roxo) : null,
-    );
-  }
-
-  Widget _radioGenero(String titulo, GeneroOpcao valor) {
-    return Expanded(
-      child: RadioListTile<GeneroOpcao>(
-        title: Text(titulo, style: TextStyle(color: AppColors.black, fontSize: 14)),
-        value: valor,
-        groupValue: _generoSelecionado,
-        onChanged: (GeneroOpcao? novoValor) => setState(() => _generoSelecionado = novoValor),
-        activeColor: AppColors.roxo,
-        contentPadding: EdgeInsets.zero,
-        dense: true,
-      ),
-    );
+  String? _validarDataNascimento() {
+    if (_dataNascimento == null) {
+      return 'Por favor, selecione sua data de nascimento.';
+    }
+    final idade = Validators.calcularIdade(_dataNascimento!);
+    if (idade < 18) {
+      return 'Você deve ter pelo menos 18 anos para se cadastrar.';
+    }
+    return null;
   }
 
   @override
@@ -282,7 +272,10 @@ class _TelaCadastroState extends State<TelaCadastro> {
           constraints: const BoxConstraints(maxWidth: 500),
           child: SingleChildScrollView(
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 20.0),
+              padding: const EdgeInsets.symmetric(
+                horizontal: 24.0,
+                vertical: 20.0,
+              ),
               child: Form(
                 key: _chaveFormulario,
                 child: Column(
@@ -292,7 +285,11 @@ class _TelaCadastroState extends State<TelaCadastro> {
                     Text(
                       "Crie sua conta SkillMatch",
                       textAlign: TextAlign.center,
-                      style: TextStyle(fontSize: 28, color: AppColors.black, fontWeight: FontWeight.bold),
+                      style: TextStyle(
+                        fontSize: 28,
+                        color: AppColors.black,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                     const SizedBox(height: 10),
                     GestureDetector(
@@ -303,21 +300,39 @@ class _TelaCadastroState extends State<TelaCadastro> {
                         backgroundImage: _imagemSelecionada != null
                             ? FileImage(_imagemSelecionada!)
                             : _urlImagemWeb != null
-                                ? NetworkImage(_urlImagemWeb!) as ImageProvider
-                                : null,
-                        child: _imagemSelecionada == null && _urlImagemWeb == null
-                            ? Icon(Icons.camera_alt, size: 40, color: AppColors.cinza)
+                            ? NetworkImage(_urlImagemWeb!) as ImageProvider
+                            : null,
+                        child:
+                            _imagemSelecionada == null && _urlImagemWeb == null
+                            ? Icon(
+                                Icons.camera_alt,
+                                size: 40,
+                                color: AppColors.cinza,
+                              )
                             : null,
                       ),
                     ),
                     const SizedBox(height: 10),
-                    _campoTexto(_controladorNomeCompleto, "Nome Completo", TextInputType.text),
+                    TextFormField(
+                      controller: _controladorNomeCompleto,
+                      decoration: _decoracao("Nome Completo"),
+                      validator: (valor) => Validators.validarCampoObrigatorio(
+                        valor,
+                        "nome completo",
+                      ),
+                    ),
                     const SizedBox(height: 8),
                     Align(
                       alignment: Alignment.centerLeft,
                       child: Padding(
                         padding: const EdgeInsets.only(left: 4.0),
-                        child: Text("Gênero", style: TextStyle(fontSize: 14, color: AppColors.black)),
+                        child: Text(
+                          "Gênero",
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: AppColors.black,
+                          ),
+                        ),
                       ),
                     ),
                     const SizedBox(height: 5),
@@ -326,39 +341,69 @@ class _TelaCadastroState extends State<TelaCadastro> {
                       children: [
                         _radioGenero("Masculino", GeneroOpcao.masculino),
                         _radioGenero("Feminino", GeneroOpcao.feminino),
-                        _radioGenero("Prefiro Não Dizer", GeneroOpcao.naoInformar),
+                        _radioGenero(
+                          "Prefiro Não Dizer",
+                          GeneroOpcao.naoInformar,
+                        ),
                       ],
                     ),
                     const SizedBox(height: 8),
                     TextFormField(
                       controller: _controladorDataNasc,
-                      decoration: _decoracao("Data de Nascimento", icone: Icons.calendar_today),
+                      decoration: _decoracao(
+                        "Data de Nascimento",
+                        icone: Icons.calendar_today,
+                      ),
                       readOnly: true,
                       onTap: () => _selecionarData(context),
-                      validator: (valor) => Validators.validarDataNascimento(_dataNascimento),
+                      validator: (valor) => _validarDataNascimento(),
                     ),
                     const SizedBox(height: 8),
                     TextFormField(
                       controller: _controladorCPF,
                       decoration: _decoracao("CPF"),
                       keyboardType: TextInputType.number,
-                      inputFormatters: [
-                        FilteringTextInputFormatter.digitsOnly,
-                        LengthLimitingTextInputFormatter(14),
-                        CPFInputFormatter(),
-                      ],
+                      inputFormatters: [CPFInputFormatter()],
                       validator: (valor) => Validators.validarCPF(valor),
                     ),
                     const SizedBox(height: 8),
-                    _campoTexto(_controladorCidade, "Cidade", TextInputType.text),
+                    TextFormField(
+                      controller: _controladorCidade,
+                      decoration: _decoracao("Cidade"),
+                      validator: (valor) =>
+                          Validators.validarCampoObrigatorio(valor, "cidade"),
+                    ),
                     const SizedBox(height: 8),
-                    _campoTexto(_controladorBio, "Bio", TextInputType.text, maxLines: 2),
+                    TextFormField(
+                      controller: _controladorBio,
+                      decoration: _decoracao("Bio"),
+                      maxLines: 2,
+                      validator: (valor) =>
+                          Validators.validarCampoObrigatorio(valor, "bio"),
+                    ),
                     const SizedBox(height: 8),
-                    _campoTexto(_controladorEmailCadastro, "E-mail", TextInputType.emailAddress),
+                    TextFormField(
+                      controller: _controladorEmailCadastro,
+                      decoration: _decoracao("E-mail"),
+                      keyboardType: TextInputType.emailAddress,
+                      validator: (valor) => Validators.validarEmail(valor),
+                    ),
                     const SizedBox(height: 8),
-                    _campoSenha(_controladorSenhaCadastro, "Senha"),
+                    TextFormField(
+                      controller: _controladorSenhaCadastro,
+                      decoration: _decoracao("Senha"),
+                      obscureText: true,
+                      validator: (valor) =>
+                          Validators.validarSenha(valor, _tamanhoMinimoSenha),
+                    ),
                     const SizedBox(height: 8),
-                    _campoSenha(_controladorConfirmarSenha, "Confirmar Senha"),
+                    TextFormField(
+                      controller: _controladorConfirmarSenha,
+                      decoration: _decoracao("Confirmar Senha"),
+                      obscureText: true,
+                      validator: (valor) =>
+                          Validators.validarSenha(valor, _tamanhoMinimoSenha),
+                    ),
                     const SizedBox(height: 8),
                     Row(
                       children: [
@@ -376,7 +421,10 @@ class _TelaCadastroState extends State<TelaCadastro> {
                         Expanded(
                           child: Text(
                             "Aceito os Termos de Uso e as Políticas de Privacidade",
-                            style: TextStyle(fontSize: 14, color: AppColors.black),
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: AppColors.black,
+                            ),
                           ),
                         ),
                       ],
@@ -388,7 +436,10 @@ class _TelaCadastroState extends State<TelaCadastro> {
                         backgroundColor: AppColors.roxo,
                         minimumSize: const Size(250, 50),
                       ),
-                      child: Text("Cadastrar", style: TextStyle(fontSize: 24, color: AppColors.white)),
+                      child: Text(
+                        "Cadastrar",
+                        style: TextStyle(fontSize: 24, color: AppColors.white),
+                      ),
                     ),
                     const SizedBox(height: 8),
                     ElevatedButton(
@@ -397,7 +448,10 @@ class _TelaCadastroState extends State<TelaCadastro> {
                         backgroundColor: AppColors.roxo,
                         minimumSize: const Size(150, 50),
                       ),
-                      child: Text("Voltar", style: TextStyle(fontSize: 24, color: AppColors.white)),
+                      child: Text(
+                        "Voltar",
+                        style: TextStyle(fontSize: 24, color: AppColors.white),
+                      ),
                     ),
                     const SizedBox(height: 20),
                   ],
@@ -409,32 +463,44 @@ class _TelaCadastroState extends State<TelaCadastro> {
       ),
     );
   }
-}
 
-class CPFInputFormatter extends TextInputFormatter {
-  @override
-  TextEditingValue formatEditUpdate(TextEditingValue oldValue, TextEditingValue newValue) {
-    final newText = newValue.text.replaceAll(RegExp(r'\D'), '');
-    if (newText.length <= 3) {
-      return TextEditingValue(
-        text: newText,
-        selection: TextSelection.collapsed(offset: newText.length),
-      );
-    } else if (newText.length <= 6) {
-      return TextEditingValue(
-        text: '${newText.substring(0, 3)}.${newText.substring(3)}',
-        selection: TextSelection.collapsed(offset: newText.length + 1),
-      );
-    } else if (newText.length <= 9) {
-      return TextEditingValue(
-        text: '${newText.substring(0, 3)}.${newText.substring(3, 6)}.${newText.substring(6)}',
-        selection: TextSelection.collapsed(offset: newText.length + 2),
-      );
-    } else {
-      return TextEditingValue(
-        text: '${newText.substring(0, 3)}.${newText.substring(3, 6)}.${newText.substring(6, 9)}-${newText.substring(9, 11)}',
-        selection: TextSelection.collapsed(offset: newText.length + 3),
-      );
-    }
+  InputDecoration _decoracao(String hint, {IconData? icone}) {
+    return InputDecoration(
+      hintText: hint,
+      hintStyle: TextStyle(color: AppColors.cinza),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(8.0),
+        borderSide: BorderSide(color: AppColors.roxo),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(8.0),
+        borderSide: BorderSide(color: AppColors.roxo, width: 2),
+      ),
+      filled: true,
+      fillColor: AppColors.white,
+      contentPadding: const EdgeInsets.symmetric(
+        horizontal: 16.0,
+        vertical: 8.0,
+      ),
+      suffixIcon: icone != null ? Icon(icone, color: AppColors.roxo) : null,
+    );
+  }
+
+  Widget _radioGenero(String titulo, GeneroOpcao valor) {
+    return Expanded(
+      child: RadioListTile<GeneroOpcao>(
+        title: Text(
+          titulo,
+          style: TextStyle(color: AppColors.black, fontSize: 14),
+        ),
+        value: valor,
+        groupValue: _generoSelecionado,
+        onChanged: (GeneroOpcao? novoValor) =>
+            setState(() => _generoSelecionado = novoValor),
+        activeColor: AppColors.roxo,
+        contentPadding: EdgeInsets.zero,
+        dense: true,
+      ),
+    );
   }
 }

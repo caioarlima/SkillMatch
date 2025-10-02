@@ -4,6 +4,7 @@ class Chat {
   final String ultimaMensagem;
   final DateTime timestamp;
   final Map<String, String> usuariosInfo;
+  final Map<String, String> usuariosFotos;
 
   Chat({
     required this.chatId,
@@ -11,6 +12,7 @@ class Chat {
     required this.ultimaMensagem,
     required this.timestamp,
     required this.usuariosInfo,
+    required this.usuariosFotos,
   });
 
   Map<String, dynamic> toMap() {
@@ -19,6 +21,7 @@ class Chat {
       'ultimaMensagem': ultimaMensagem,
       'timestamp': timestamp,
       'usuariosInfo': usuariosInfo,
+      'usuariosFotos': usuariosFotos,
     };
   }
 
@@ -29,6 +32,7 @@ class Chat {
       ultimaMensagem: map['ultimaMensagem'],
       timestamp: map['timestamp'].toDate(),
       usuariosInfo: Map<String, String>.from(map['usuariosInfo']),
+      usuariosFotos: Map<String, String>.from(map['usuariosFotos'] ?? {}),
     );
   }
 }

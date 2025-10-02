@@ -5,10 +5,8 @@ class AuthRepository {
 
   Future<User?> fazerLoginComEmailSenha(String email, String senha) async {
     try {
-      final UserCredential userCredential = await _auth.signInWithEmailAndPassword(
-        email: email,
-        password: senha,
-      );
+      final UserCredential userCredential = await _auth
+          .signInWithEmailAndPassword(email: email, password: senha);
       return userCredential.user;
     } on FirebaseAuthException catch (e) {
       if (e.code == 'invalid-credential') {
@@ -38,8 +36,6 @@ class AuthRepository {
       throw Exception('Erro inesperado: $e');
     }
   }
-
-
 
   Future<void> updatePassword(String newPassword) async {
     try {

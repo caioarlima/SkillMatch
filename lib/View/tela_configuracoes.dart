@@ -58,10 +58,7 @@ class _TelaConfiguracoesState extends State<TelaConfiguracoes> {
               children: [
                 Text(
                   'Para excluir sua conta, precisamos confirmar sua identidade. Digite sua senha atual:',
-                  style: TextStyle(
-                    color: AppColors.cinza,
-                    fontSize: 14,
-                  ),
+                  style: TextStyle(color: AppColors.cinza, fontSize: 14),
                 ),
                 const SizedBox(height: 16),
                 TextFormField(
@@ -87,10 +84,7 @@ class _TelaConfiguracoesState extends State<TelaConfiguracoes> {
                 onPressed: () => Navigator.pop(context),
                 child: Text(
                   'Cancelar',
-                  style: TextStyle(
-                    color: AppColors.cinza,
-                    fontSize: 16,
-                  ),
+                  style: TextStyle(color: AppColors.cinza, fontSize: 16),
                 ),
               ),
               TextButton(
@@ -141,9 +135,7 @@ class _TelaConfiguracoesState extends State<TelaConfiguracoes> {
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: AppColors.white,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: Text(
           'Excluir Conta',
           style: TextStyle(
@@ -154,20 +146,14 @@ class _TelaConfiguracoesState extends State<TelaConfiguracoes> {
         ),
         content: Text(
           'Tem certeza que deseja excluir sua conta? Esta ação não pode ser desfeita e todos os seus dados serão perdidos.',
-          style: TextStyle(
-            color: AppColors.cinza,
-            fontSize: 14,
-          ),
+          style: TextStyle(color: AppColors.cinza, fontSize: 14),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
             child: Text(
               'Cancelar',
-              style: TextStyle(
-                color: AppColors.cinza,
-                fontSize: 16,
-              ),
+              style: TextStyle(color: AppColors.cinza, fontSize: 16),
             ),
           ),
           TextButton(
@@ -213,11 +199,11 @@ class _TelaConfiguracoesState extends State<TelaConfiguracoes> {
             ),
           );
         });
-
       } catch (e) {
         String mensagemErro = 'Erro ao excluir conta';
         if (e.toString().contains('requires-recent-login')) {
-          mensagemErro = 'É necessário fazer login novamente antes de excluir a conta';
+          mensagemErro =
+              'É necessário fazer login novamente antes de excluir a conta';
         } else if (e.toString().contains('wrong-password')) {
           mensagemErro = 'Senha incorreta';
         } else if (e.toString().contains('user-not-found')) {
@@ -225,7 +211,7 @@ class _TelaConfiguracoesState extends State<TelaConfiguracoes> {
         } else if (e.toString().contains('network-request-failed')) {
           mensagemErro = 'Erro de conexão. Verifique sua internet';
         }
-        
+
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(mensagemErro),
@@ -299,8 +285,11 @@ class _TelaConfiguracoesState extends State<TelaConfiguracoes> {
           children: [
             Row(
               children: [
-                Icon(Icons.warning_amber_rounded, 
-                    color: Colors.orange[700], size: 24),
+                Icon(
+                  Icons.warning_amber_rounded,
+                  color: Colors.orange[700],
+                  size: 24,
+                ),
                 SizedBox(width: 8),
                 Text(
                   'Ações Perigosas',
@@ -315,10 +304,7 @@ class _TelaConfiguracoesState extends State<TelaConfiguracoes> {
             SizedBox(height: 16),
             Text(
               'Essas ações afetam permanentemente sua conta e não podem ser desfeitas.',
-              style: TextStyle(
-                fontSize: 14,
-                color: AppColors.cinza,
-              ),
+              style: TextStyle(fontSize: 14, color: AppColors.cinza),
             ),
             SizedBox(height: 20),
             _buildActionButton(
@@ -329,10 +315,7 @@ class _TelaConfiguracoesState extends State<TelaConfiguracoes> {
               onTap: _logout,
             ),
             SizedBox(height: 16),
-            Container(
-              height: 1,
-              color: Colors.grey[300],
-            ),
+            Container(height: 1, color: Colors.grey[300]),
             SizedBox(height: 16),
             _buildActionButton(
               icon: Icons.delete_forever,
@@ -392,10 +375,7 @@ class _TelaConfiguracoesState extends State<TelaConfiguracoes> {
                     SizedBox(height: 4),
                     Text(
                       subtitle,
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: AppColors.cinza,
-                      ),
+                      style: TextStyle(fontSize: 12, color: AppColors.cinza),
                     ),
                   ],
                 ),

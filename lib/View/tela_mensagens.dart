@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../Controller/mensagem_controller.dart';
@@ -27,8 +28,11 @@ class _TelaMensagensState extends State<TelaMensagens> {
 
   void _carregarChats() {
     final authController = Provider.of<AuthController>(context, listen: false);
-    final mensagemController = Provider.of<MensagemController>(context, listen: false);
-    
+    final mensagemController = Provider.of<MensagemController>(
+      context,
+      listen: false,
+    );
+
     final user = authController.currentUser;
     if (user != null) {
       mensagemController.carregarChats(user.uid);
@@ -37,7 +41,7 @@ class _TelaMensagensState extends State<TelaMensagens> {
 
   List<Chat> _filtrarChats(List<Chat> chats, String query) {
     if (query.isEmpty) return chats;
-    
+
     return chats.where((chat) {
       final outroUsuarioNome = _getNomeOutroUsuario(chat);
       return outroUsuarioNome.toLowerCase().contains(query.toLowerCase());
@@ -48,7 +52,7 @@ class _TelaMensagensState extends State<TelaMensagens> {
     final authController = Provider.of<AuthController>(context, listen: false);
     final user = authController.currentUser;
     final meuId = user?.uid ?? "";
-    
+
     for (final participanteId in chat.participantes) {
       if (participanteId != meuId) {
         return chat.usuariosInfo[participanteId] ?? 'Usuário';
@@ -60,8 +64,12 @@ class _TelaMensagensState extends State<TelaMensagens> {
   @override
   Widget build(BuildContext context) {
     final controller = Provider.of<MensagemController>(context);
+    final authController = Provider.of<AuthController>(context, listen: false);
+    final user = authController.currentUser;
+    final meuId = user?.uid ?? "";
+
     final chatsFiltrados = _filtrarChats(controller.chats, _searchQuery);
-    
+
     return Scaffold(
       backgroundColor: AppColors.fundo,
       appBar: AppBar(
@@ -69,17 +77,13 @@ class _TelaMensagensState extends State<TelaMensagens> {
         foregroundColor: AppColors.white,
         title: Text(
           'Mensagens',
-          style: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-          ),
+          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
         ),
         centerTitle: true,
         elevation: 0,
       ),
       body: Column(
         children: [
-          // Campo de pesquisa
           Padding(
             padding: const EdgeInsets.all(16.0),
             child: Container(
@@ -126,48 +130,45 @@ class _TelaMensagensState extends State<TelaMensagens> {
               ),
             ),
           ),
-          // Lista de chats
           Expanded(
             child: controller.carregando
                 ? Center(
-                    child: CircularProgressIndicator(
-                      color: AppColors.roxo,
-                    ),
+                    child: CircularProgressIndicator(color: AppColors.roxo),
                   )
                 : chatsFiltrados.isEmpty
-                    ? Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                              _searchQuery.isEmpty
-                                  ? Icons.chat_bubble_outline
-                                  : Icons.search_off,
-                              size: 64,
-                              color: AppColors.cinza.withOpacity(0.5),
-                            ),
-                            SizedBox(height: 16),
-                            Text(
-                              _searchQuery.isEmpty
-                                  ? 'Nenhuma conversa encontrada'
-                                  : 'Nenhum chat encontrado com "$_searchQuery"',
-                              style: TextStyle(
-                                fontSize: 16,
-                                color: AppColors.cinza,
-                              ),
-                              textAlign: TextAlign.center,
-                            ),
-                          ],
+                ? Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          _searchQuery.isEmpty
+                              ? Icons.chat_bubble_outline
+                              : Icons.search_off,
+                          size: 64,
+                          color: AppColors.cinza.withOpacity(0.5),
                         ),
-                      )
-                    : ListView.builder(
-                        padding: EdgeInsets.symmetric(horizontal: 16),
-                        itemCount: chatsFiltrados.length,
-                        itemBuilder: (context, index) {
-                          final chat = chatsFiltrados[index];
-                          return _ItemConversa(chat: chat);
-                        },
-                      ),
+                        SizedBox(height: 16),
+                        Text(
+                          _searchQuery.isEmpty
+                              ? 'Nenhuma conversa encontrada'
+                              : 'Nenhum chat encontrado com "$_searchQuery"',
+                          style: TextStyle(
+                            fontSize: 16,
+                            color: AppColors.cinza,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ],
+                    ),
+                  )
+                : ListView.builder(
+                    padding: EdgeInsets.symmetric(horizontal: 16),
+                    itemCount: chatsFiltrados.length,
+                    itemBuilder: (context, index) {
+                      final chat = chatsFiltrados[index];
+                      return _ItemConversa(chat: chat, meuId: meuId);
+                    },
+                  ),
           ),
         ],
       ),
@@ -177,15 +178,80 @@ class _TelaMensagensState extends State<TelaMensagens> {
 
 class _ItemConversa extends StatelessWidget {
   final Chat chat;
+  final String meuId;
 
-  _ItemConversa({required this.chat});
+  _ItemConversa({required this.chat, required this.meuId});
+
+  Widget _buildUserAvatar(String userId, String userName) {
+    final userFoto = chat.usuariosFotos?[userId];
+
+    if (userFoto != null && userFoto.isNotEmpty) {
+      try {
+        final bytes = base64Decode(userFoto);
+        return CircleAvatar(radius: 25, backgroundImage: MemoryImage(bytes));
+      } catch (e) {
+        print("Erro ao decodificar imagem Base64: $e");
+      }
+    }
+
+    return CircleAvatar(
+      radius: 25,
+      backgroundColor: AppColors.roxo,
+      child: Text(
+        userName[0].toUpperCase(),
+        style: TextStyle(
+          color: AppColors.white,
+          fontSize: 18,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBadgeMensagensNaoLidas(String chatId) {
+    return Consumer<MensagemController>(
+      builder: (context, mensagemController, child) {
+        final mensagensNaoLidasLocal = mensagemController
+            .contarMensagensNaoLidasLocal(chatId, meuId);
+
+        return FutureBuilder<int>(
+          future: mensagemController.contarMensagensNaoLidas(chatId, meuId),
+          builder: (context, snapshot) {
+            final mensagensNaoLidas = snapshot.hasData
+                ? snapshot.data!
+                : mensagensNaoLidasLocal;
+
+            if (mensagensNaoLidas > 0) {
+              return Container(
+                padding: EdgeInsets.all(6),
+                decoration: BoxDecoration(
+                  color: Colors.red,
+                  shape: BoxShape.circle,
+                ),
+                child: Text(
+                  mensagensNaoLidas > 9 ? '9+' : mensagensNaoLidas.toString(),
+                  style: TextStyle(
+                    color: AppColors.white,
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              );
+            }
+            return SizedBox.shrink();
+          },
+        );
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
-    final authController = Provider.of<AuthController>(context, listen: false);
-    final user = authController.currentUser;
-    final meuId = user?.uid ?? "";
-    
+    final mensagemController = Provider.of<MensagemController>(
+      context,
+      listen: false,
+    );
+
     String _getOutroUsuarioId() {
       for (final participanteId in chat.participantes) {
         if (participanteId != meuId) {
@@ -203,8 +269,12 @@ class _ItemConversa extends StatelessWidget {
     String _formatarHora() {
       final now = DateTime.now();
       final today = DateTime(now.year, now.month, now.day);
-      final messageDate = DateTime(chat.timestamp.year, chat.timestamp.month, chat.timestamp.day);
-      
+      final messageDate = DateTime(
+        chat.timestamp.year,
+        chat.timestamp.month,
+        chat.timestamp.day,
+      );
+
       if (messageDate == today) {
         return '${chat.timestamp.hour}:${chat.timestamp.minute.toString().padLeft(2, '0')}';
       } else {
@@ -212,34 +282,27 @@ class _ItemConversa extends StatelessWidget {
       }
     }
 
+    final outroUsuarioNome = _getNomeOutroUsuario();
+    final outroUsuarioId = _getOutroUsuarioId();
+
     return Card(
       margin: EdgeInsets.only(bottom: 12),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       elevation: 2,
       child: ListTile(
         contentPadding: EdgeInsets.all(16),
-        leading: Container(
-          width: 50,
-          height: 50,
-          decoration: BoxDecoration(
-            color: AppColors.roxo,
-            shape: BoxShape.circle,
-          ),
-          child: Center(
-            child: Text(
-              _getNomeOutroUsuario()[0].toUpperCase(),
-              style: TextStyle(
-                color: AppColors.white,
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
+        leading: Stack(
+          children: [
+            _buildUserAvatar(outroUsuarioId, outroUsuarioNome),
+            Positioned(
+              top: 0,
+              right: 0,
+              child: _buildBadgeMensagensNaoLidas(chat.chatId),
             ),
-          ),
+          ],
         ),
         title: Text(
-          _getNomeOutroUsuario(),
+          outroUsuarioNome,
           style: TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.bold,
@@ -247,32 +310,27 @@ class _ItemConversa extends StatelessWidget {
           ),
         ),
         subtitle: Text(
-          chat.ultimaMensagem.isNotEmpty ? chat.ultimaMensagem : 'Conversa iniciada',
-          style: TextStyle(
-            fontSize: 14,
-            color: AppColors.cinza,
-          ),
+          chat.ultimaMensagem.isNotEmpty
+              ? chat.ultimaMensagem
+              : 'Conversa iniciada',
+          style: TextStyle(fontSize: 14, color: AppColors.cinza),
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
         ),
         trailing: Text(
           _formatarHora(),
-          style: TextStyle(
-            fontSize: 12,
-            color: AppColors.cinza,
-          ),
+          style: TextStyle(fontSize: 12, color: AppColors.cinza),
         ),
         onTap: () {
-          final outroUsuarioId = _getOutroUsuarioId();
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => TelaChat(
-                outroUsuario: outroUsuarioId,
-                chatId: chat.chatId,
-              ),
+              builder: (context) =>
+                  TelaChat(outroUsuario: outroUsuarioId, chatId: chat.chatId),
             ),
-          );
+          ).then((_) {
+            mensagemController.carregarChats(meuId);
+          });
         },
       ),
     );
