@@ -7,7 +7,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import 'package:skilmatch/Controller/auth_controller.dart';
 import 'package:skilmatch/Controller/colors.dart';
-import 'package:skilmatch/Model/usuario.dart';
+import 'package:skilmatch/Model/Usuario.dart';
 import 'package:skilmatch/Services/validadores.dart';
 import 'package:skilmatch/View/tela_login.dart';
 import 'package:skilmatch/View/tela_ProcurarTrocas.dart';
@@ -44,6 +44,8 @@ class _TelaCadastroState extends State<TelaCadastro> {
   GeneroOpcao? _generoSelecionado;
   final int _tamanhoMinimoSenha = 6;
   bool _aceitouTermos = false;
+  String? _erroCPF;
+  bool _validandoCPF = false;
 
   @override
   void dispose() {
@@ -170,6 +172,43 @@ class _TelaCadastroState extends State<TelaCadastro> {
     );
   }
 
+  Future<void> _validarCPFUnico(String cpf) async {
+    final cpfLimpo = cpf.replaceAll(RegExp(r'\D'), '');
+
+    if (cpfLimpo.length == 11) {
+      setState(() {
+        _validandoCPF = true;
+      });
+
+      final authController = Provider.of<AuthController>(
+        context,
+        listen: false,
+      );
+      final erro = await Validators.validarCPFCadastrado(
+        cpfLimpo,
+        authController,
+      );
+
+      setState(() {
+        _erroCPF = erro;
+        _validandoCPF = false;
+      });
+    }
+  }
+
+  String? _validarCPF(String? valor) {
+    if (valor == null || valor.isEmpty) {
+      return 'Por favor, insira o seu CPF';
+    }
+
+    final cpfLimpo = valor.replaceAll(RegExp(r'\D'), '');
+    if (cpfLimpo.length != 11) {
+      return 'CPF deve ter 11 dígitos';
+    }
+
+    return _erroCPF;
+  }
+
   Future<void> _cadastrarUsuario() async {
     if (_chaveFormulario.currentState!.validate()) {
       if (!_aceitouTermos) {
@@ -198,10 +237,30 @@ class _TelaCadastroState extends State<TelaCadastro> {
         return;
       }
 
+      if (_erroCPF != null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(_erroCPF!), backgroundColor: Colors.red),
+        );
+        return;
+      }
+
       final authController = Provider.of<AuthController>(
         context,
         listen: false,
       );
+
+      final cpfLimpo = _controladorCPF.text.replaceAll(RegExp(r'\D'), '');
+      final cpfExiste = await authController.verificarCPFExistente(cpfLimpo);
+
+      if (cpfExiste) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('CPF já cadastrado no sistema'),
+            backgroundColor: Colors.red,
+          ),
+        );
+        return;
+      }
 
       final usuario = Usuario(
         nomeCompleto: _controladorNomeCompleto.text.trim(),
@@ -361,10 +420,24 @@ class _TelaCadastroState extends State<TelaCadastro> {
                     const SizedBox(height: 8),
                     TextFormField(
                       controller: _controladorCPF,
-                      decoration: _decoracao("CPF"),
+                      decoration: _decoracao("CPF").copyWith(
+                        suffixIcon: _validandoCPF
+                            ? SizedBox(
+                                width: 20,
+                                height: 20,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  valueColor: AlwaysStoppedAnimation<Color>(
+                                    AppColors.roxo,
+                                  ),
+                                ),
+                              )
+                            : null,
+                      ),
                       keyboardType: TextInputType.number,
                       inputFormatters: [CPFInputFormatter()],
-                      validator: (valor) => Validators.validarCPF(valor),
+                      onChanged: _validarCPFUnico,
+                      validator: _validarCPF,
                     ),
                     const SizedBox(height: 8),
                     TextFormField(

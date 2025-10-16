@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:skilmatch/Repository/usuario_repository.dart';
-import 'package:skilmatch/Model/usuario.dart';
+import 'package:skilmatch/Model/Usuario.dart';
 
 class UsuarioController with ChangeNotifier {
   final UsuarioRepository _usuarioRepository = UsuarioRepository();

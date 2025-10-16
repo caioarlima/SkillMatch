@@ -152,7 +152,6 @@ class MensagemRepository {
     }
   }
 
-  
   Future<void> marcarMensagensComoLidas(
     String chatId,
     String userId,

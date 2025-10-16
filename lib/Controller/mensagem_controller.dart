@@ -111,7 +111,6 @@ class MensagemController with ChangeNotifier {
 
   Future<void> marcarMensagensComoLidas(String chatId, String userId) async {
     try {
-    
       final mensagensNaoLidas = _mensagens
           .where(
             (mensagem) =>
@@ -124,7 +123,6 @@ class MensagemController with ChangeNotifier {
         final mensagemIds = mensagensNaoLidas.map((m) => m.mensagemId).toList();
         await _repository.marcarMensagensComoLidas(chatId, userId, mensagemIds);
 
-        
         for (final mensagem in mensagensNaoLidas) {
           final index = _mensagens.indexWhere(
             (m) => m.mensagemId == mensagem.mensagemId,

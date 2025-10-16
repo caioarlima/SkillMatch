@@ -1,4 +1,5 @@
 import 'package:flutter/services.dart';
+import 'package:skilmatch/Controller/auth_controller.dart';
 
 class Validators {
   static String? validarEmail(String? valor) {
@@ -24,13 +25,11 @@ class Validators {
   static int calcularIdade(DateTime dataNascimento) {
     final agora = DateTime.now();
     int idade = agora.year - dataNascimento.year;
-
     if (agora.month < dataNascimento.month ||
         (agora.month == dataNascimento.month &&
             agora.day < dataNascimento.day)) {
       idade--;
     }
-
     return idade;
   }
 
@@ -38,12 +37,10 @@ class Validators {
     if (dataNascimento == null) {
       return 'Por favor, selecione sua data de nascimento.';
     }
-
     final idade = calcularIdade(dataNascimento);
     if (idade < 18) {
       return 'Você deve ter pelo menos 18 anos para se cadastrar.';
     }
-
     return null;
   }
 
@@ -96,13 +93,35 @@ class Validators {
     return null;
   }
 
+  static Future<String?> validarCPFCadastrado(
+    String? cpf,
+    AuthController authController,
+  ) async {
+    final cpfLimpo = cpf?.replaceAll(RegExp(r'\D'), '') ?? '';
+
+    final validacaoBasica = validarCPF(cpfLimpo);
+    if (validacaoBasica != null) {
+      return validacaoBasica;
+    }
+
+    try {
+      final cpfExiste = await authController.verificarCPFExistente(cpfLimpo);
+
+      if (cpfExiste) {
+        return 'CPF já cadastrado';
+      }
+    } catch (e) {
+      return 'Erro ao verificar CPF';
+    }
+
+    return null;
+  }
+
   static String formatarCPF(String cpf) {
     String cpfLimpo = cpf.replaceAll(RegExp(r'\D'), '');
-
     if (cpfLimpo.length > 11) {
       cpfLimpo = cpfLimpo.substring(0, 11);
     }
-
     if (cpfLimpo.length <= 3) {
       return cpfLimpo;
     } else if (cpfLimpo.length <= 6) {
@@ -122,11 +141,9 @@ class CPFInputFormatter extends TextInputFormatter {
     TextEditingValue newValue,
   ) {
     String newText = newValue.text.replaceAll(RegExp(r'\D'), '');
-
     if (newText.length > 11) {
       newText = newText.substring(0, 11);
     }
-
     if (newText.length <= 3) {
       newText = newText;
     } else if (newText.length <= 6) {
@@ -138,7 +155,6 @@ class CPFInputFormatter extends TextInputFormatter {
       newText =
           '${newText.substring(0, 3)}.${newText.substring(3, 6)}.${newText.substring(6, 9)}-${newText.substring(9)}';
     }
-
     return TextEditingValue(
       text: newText,
       selection: TextSelection.collapsed(offset: newText.length),

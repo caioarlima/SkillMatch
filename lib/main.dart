@@ -4,7 +4,8 @@ import 'package:provider/provider.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:skilmatch/Controller/auth_controller.dart';
 import 'package:skilmatch/Controller/usuario_controller.dart';
-import 'package:skilmatch/Controller/mensagem_controller.dart'; // ADICIONAR
+import 'package:skilmatch/Controller/mensagem_controller.dart';
+import 'package:skilmatch/Controller/avaliacao_controller.dart';
 import 'package:skilmatch/View/tela_login.dart';
 import 'package:skilmatch/View/tela_ProcurarTrocas.dart';
 import 'firebase_options.dart';
@@ -25,6 +26,7 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => AuthController()),
         ChangeNotifierProvider(create: (_) => UsuarioController()),
         ChangeNotifierProvider(create: (_) => MensagemController()),
+        ChangeNotifierProvider(create: (_) => AvaliacaoController()),
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
@@ -42,14 +44,14 @@ class AuthCheck extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final authController = Provider.of<AuthController>(context);
-    
+
     return StreamBuilder<User?>(
       stream: authController.authStateChanges,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
         }
-        
+
         if (snapshot.hasData) {
           return const TelaProcuraTrocas();
         } else {

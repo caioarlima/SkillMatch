@@ -1,5 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:skilmatch/Model/usuario.dart';
+import 'package:skilmatch/Model/Usuario.dart';
 
 class UsuarioRepository {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -60,9 +60,7 @@ class UsuarioRepository {
 
       return snapshot.docs
           .map((doc) => Usuario.fromMap(doc.id, doc.data()!))
-          .where(
-            (usuario) => usuario.id != excludeUserId,
-          ) 
+          .where((usuario) => usuario.id != excludeUserId)
           .toList();
     } catch (e) {
       throw Exception('Erro ao buscar usuários por cidade: $e');
@@ -80,7 +78,7 @@ class UsuarioRepository {
           .map((doc) => Usuario.fromMap(doc.id, doc.data()!))
           .where(
             (usuario) => usuario.id != excludeUserId,
-          ) // Filtra usuário atual
+          ) 
           .where(
             (usuario) =>
                 usuario.nomeCompleto.toLowerCase().contains(
@@ -106,9 +104,7 @@ class UsuarioRepository {
         .map(
           (snapshot) => snapshot.docs
               .map((doc) => Usuario.fromMap(doc.id, doc.data()!))
-              .where(
-                (usuario) => usuario.id != excludeUserId,
-              ) 
+              .where((usuario) => usuario.id != excludeUserId)
               .toList(),
         );
   }

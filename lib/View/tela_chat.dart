@@ -1,11 +1,14 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import '../Controller/mensagem_controller.dart';
 import '../Controller/auth_controller.dart';
 import '../Controller/usuario_controller.dart';
+import '../Controller/avaliacao_controller.dart';
 import '../Model/Mensagem.dart';
 import '../Controller/colors.dart';
+import 'package:skilmatch/Repository/chat_repository.dart';
 
 class TelaChat extends StatefulWidget {
   final String outroUsuario;
@@ -95,6 +98,373 @@ class _TelaChatState extends State<TelaChat> {
     );
   }
 
+  void _mostrarDialogoAvaliacao(BuildContext context) {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      try {
+        final authController = Provider.of<AuthController>(
+          context,
+          listen: false,
+        );
+        final avaliacaoController = Provider.of<AvaliacaoController>(
+          context,
+          listen: false,
+        );
+        final usuarioLogado = authController.currentUser;
+
+        if (usuarioLogado != null) {
+          bool jaAvaliou = await avaliacaoController.usuarioJaAvaliou(
+            usuarioLogado.uid,
+            widget.outroUsuario,
+          );
+
+          if (jaAvaliou && mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Você já avaliou este usuário. Chat encerrado.'),
+                backgroundColor: Colors.orange,
+              ),
+            );
+            Navigator.pop(context);
+            return;
+          }
+        }
+      } catch (e) {
+        print('Erro ao verificar avaliação: $e');
+      }
+    });
+
+    int estrelas = 0;
+    TextEditingController comentarioController = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              backgroundColor: AppColors.fundo,
+              surfaceTintColor: AppColors.fundo,
+              title: Text(
+                'Avaliar Usuário',
+                style: TextStyle(
+                  color: AppColors.roxo,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    'Como foi sua experiência com ${_nomeOutroUsuario ?? 'este usuário'}?',
+                    style: TextStyle(color: AppColors.cinza),
+                  ),
+                  SizedBox(height: 16),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: List.generate(5, (index) {
+                      return IconButton(
+                        onPressed: () {
+                          setState(() {
+                            estrelas = index + 1;
+                          });
+                        },
+                        icon: Icon(
+                          index < estrelas ? Icons.star : Icons.star_border,
+                          color: AppColors.roxo,
+                          size: 32,
+                        ),
+                      );
+                    }),
+                  ),
+                  SizedBox(height: 16),
+                  TextField(
+                    controller: comentarioController,
+                    maxLines: 3,
+                    decoration: InputDecoration(
+                      hintText: 'Deixe um comentário (opcional)...',
+                      hintStyle: TextStyle(color: AppColors.cinza),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(color: AppColors.cinza),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(color: AppColors.roxo),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: Text(
+                    'Cancelar',
+                    style: TextStyle(color: AppColors.cinza),
+                  ),
+                ),
+                ElevatedButton(
+                  onPressed: estrelas > 0
+                      ? () async {
+                          await _enviarAvaliacao(
+                            estrelas: estrelas,
+                            comentario: comentarioController.text,
+                          );
+                          Navigator.pop(context);
+                        }
+                      : null,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.roxo,
+                    foregroundColor: AppColors.white,
+                  ),
+                  child: Text('Avaliar'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
+  void _mostrarDialogoDenuncia(BuildContext context) {
+    TextEditingController motivoController = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: AppColors.fundo,
+          surfaceTintColor: AppColors.fundo,
+          title: Text(
+            'Denunciar Usuário',
+            style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                'Por que você está denunciando ${_nomeOutroUsuario ?? 'este usuário'}?',
+                style: TextStyle(color: AppColors.cinza),
+              ),
+              SizedBox(height: 16),
+              TextField(
+                controller: motivoController,
+                maxLines: 4,
+                decoration: InputDecoration(
+                  hintText: 'Descreva o motivo da denúncia...',
+                  hintStyle: TextStyle(color: AppColors.cinza),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: AppColors.cinza),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: Colors.red),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text('Cancelar', style: TextStyle(color: AppColors.cinza)),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                if (motivoController.text.trim().isNotEmpty) {
+                  await _enviarDenuncia(motivoController.text.trim());
+                  Navigator.pop(context);
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Por favor, digite o motivo da denúncia'),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                }
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red,
+                foregroundColor: AppColors.white,
+              ),
+              child: Text('Enviar Denúncia'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> _enviarAvaliacao({
+    required int estrelas,
+    required String comentario,
+  }) async {
+    try {
+      final authController = Provider.of<AuthController>(
+        context,
+        listen: false,
+      );
+      final avaliacaoController = Provider.of<AvaliacaoController>(
+        context,
+        listen: false,
+      );
+      final usuarioController = Provider.of<UsuarioController>(
+        context,
+        listen: false,
+      );
+
+      final usuarioLogado = authController.currentUser;
+      if (usuarioLogado == null) return;
+
+      final avaliador = await usuarioController.buscarUsuarioPorId(
+        usuarioLogado.uid,
+      );
+      final avaliado = await usuarioController.buscarUsuarioPorId(
+        widget.outroUsuario,
+      );
+
+      if (avaliador != null && avaliado != null) {
+        final sucesso = await avaliacaoController.salvarAvaliacao(
+          avaliadorId: usuarioLogado.uid,
+          avaliadoId: widget.outroUsuario,
+          estrelas: estrelas,
+          comentario: comentario,
+          usuarioAvaliador: avaliador,
+          usuarioAvaliado: avaliado,
+        );
+
+        if (sucesso) {
+          await _encerrarChat();
+
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Avaliação enviada com sucesso! Chat encerrado.'),
+              backgroundColor: Colors.green,
+            ),
+          );
+
+          Navigator.pop(context);
+        }
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Erro ao enviar avaliação: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
+  Future<void> _encerrarChat() async {
+    try {
+      final firestore = FirebaseFirestore.instance;
+      final authController = Provider.of<AuthController>(
+        context,
+        listen: false,
+      );
+      final usuarioLogado = authController.currentUser;
+
+      if (usuarioLogado == null) return;
+
+      final chatRef = firestore.collection('chats').doc(widget.chatId);
+
+      final chatDoc = await chatRef.get();
+
+      if (!chatDoc.exists) {
+        await chatRef.set({
+          'participantes': [usuarioLogado.uid, widget.outroUsuario],
+          'status': 'finalizado',
+          'finalizadoPor': usuarioLogado.uid,
+          'dataFinalizacao': FieldValue.serverTimestamp(),
+          'criadoEm': FieldValue.serverTimestamp(),
+          'ultimaMensagem': 'Troca realizada',
+          'ultimaMensagemEnviadaEm': FieldValue.serverTimestamp(),
+          'usuariosInfo': {
+            usuarioLogado.uid: _getCurrentUserName(),
+            widget.outroUsuario: _nomeOutroUsuario ?? 'Usuário',
+          },
+        });
+        print('✅ Chat criado e finalizado: ${widget.chatId}');
+      } else {
+        await chatRef.update({
+          'status': 'finalizado',
+          'finalizadoPor': usuarioLogado.uid,
+          'dataFinalizacao': FieldValue.serverTimestamp(),
+        });
+        print('✅ Chat atualizado para finalizado: ${widget.chatId}');
+      }
+    } catch (e) {
+      print('❌ Erro ao encerrar chat: $e');
+    }
+  }
+
+  String _getCurrentUserName() {
+    final authController = Provider.of<AuthController>(context, listen: false);
+    final user = authController.currentUser;
+    return user?.displayName ?? 'Usuário';
+  }
+
+  Future<void> _enviarDenuncia(String motivo) async {
+    try {
+      final authController = Provider.of<AuthController>(
+        context,
+        listen: false,
+      );
+      final avaliacaoController = Provider.of<AvaliacaoController>(
+        context,
+        listen: false,
+      );
+      final usuarioController = Provider.of<UsuarioController>(
+        context,
+        listen: false,
+      );
+
+      final usuarioLogado = authController.currentUser;
+      if (usuarioLogado == null) return;
+
+      final denunciante = await usuarioController.buscarUsuarioPorId(
+        usuarioLogado.uid,
+      );
+      final denunciado = await usuarioController.buscarUsuarioPorId(
+        widget.outroUsuario,
+      );
+
+      if (denunciante != null && denunciado != null) {
+        final sucesso = await avaliacaoController.enviarDenuncia(
+          motivo: motivo,
+          usuarioDenunciado: denunciado,
+          usuarioDenunciante: denunciante,
+        );
+
+        if (sucesso) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Denúncia enviada com sucesso!'),
+              backgroundColor: Colors.green,
+            ),
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Erro ao enviar denúncia. Tente novamente.'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Erro ao enviar denúncia: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final controller = Provider.of<MensagemController>(context);
@@ -128,6 +498,40 @@ class _TelaChatState extends State<TelaChat> {
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(bottom: Radius.circular(12)),
         ),
+        actions: [
+          PopupMenuButton<String>(
+            icon: Icon(Icons.more_vert, color: AppColors.white),
+            onSelected: (value) {
+              if (value == 'avaliar') {
+                _mostrarDialogoAvaliacao(context);
+              } else if (value == 'denunciar') {
+                _mostrarDialogoDenuncia(context);
+              }
+            },
+            itemBuilder: (BuildContext context) => [
+              PopupMenuItem<String>(
+                value: 'avaliar',
+                child: Row(
+                  children: [
+                    Icon(Icons.star, color: AppColors.roxo),
+                    SizedBox(width: 8),
+                    Text('Avaliar'),
+                  ],
+                ),
+              ),
+              PopupMenuItem<String>(
+                value: 'denunciar',
+                child: Row(
+                  children: [
+                    Icon(Icons.report, color: Colors.red),
+                    SizedBox(width: 8),
+                    Text('Denunciar'),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ],
       ),
       body: Column(
         children: [

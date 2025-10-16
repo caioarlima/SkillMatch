@@ -1,4 +1,3 @@
-// Model/usuario.dart
 class Usuario {
   String? id;
   final String nomeCompleto;

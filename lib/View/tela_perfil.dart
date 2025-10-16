@@ -3,8 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:skilmatch/Controller/colors.dart';
 import 'package:skilmatch/Controller/usuario_controller.dart';
-import 'package:skilmatch/Model/usuario.dart';
+import 'package:skilmatch/Controller/avaliacao_controller.dart';
+import 'package:skilmatch/Model/Usuario.dart';
 import 'package:skilmatch/View/tela_configuracoes.dart';
+import 'package:skilmatch/Repository/chat_repository.dart'; // ADICIONAR IMPORT
 
 class TelaPerfil extends StatefulWidget {
   const TelaPerfil({super.key});
@@ -15,35 +17,102 @@ class TelaPerfil extends StatefulWidget {
 
 class _TelaPerfilState extends State<TelaPerfil> {
   final UsuarioController _usuarioController = UsuarioController();
+  final AvaliacaoController _avaliacaoController = AvaliacaoController();
+  final ChatRepository _chatRepository = ChatRepository(); // ADICIONAR AQUI
   final FirebaseAuth _auth = FirebaseAuth.instance;
   Usuario? _usuario;
   bool _isLoading = true;
+  double _mediaAvaliacoes = 0.0;
+  int _totalTrocas = 0;
+  int _totalProjetos = 0;
 
   @override
   void initState() {
     super.initState();
-    _carregarUsuario();
+    _carregarDadosUsuario();
   }
 
   String _getCurrentUserId() {
     return _auth.currentUser!.uid;
   }
 
-  Future<void> _carregarUsuario() async {
+  Future<void> _carregarDadosUsuario() async {
     try {
       final usuario = await _usuarioController.buscarUsuarioPorId(
         _getCurrentUserId(),
       );
+
+      final media = await _avaliacaoController.getMediaAvaliacoes(
+        _getCurrentUserId(),
+      );
+
+      final trocas = await _carregarTotalTrocas();
+      final projetos = await _carregarTotalProjetos();
+
+      print('🔄 Total de trocas carregadas: $trocas');
+
       setState(() {
         _usuario = usuario;
+        _mediaAvaliacoes = media;
+        _totalTrocas = trocas;
+        _totalProjetos = projetos;
         _isLoading = false;
       });
     } catch (e) {
-      print('Erro ao carregar usuário: $e');
+      print('Erro ao carregar dados do usuário: $e');
       setState(() {
         _isLoading = false;
       });
     }
+  }
+
+  Future<int> _carregarTotalTrocas() async {
+    try {
+      return await _chatRepository.getTotalTrocasUsuario(_getCurrentUserId());
+    } catch (e) {
+      print('Erro ao carregar total de trocas: $e');
+      return 0;
+    }
+  }
+
+  Future<int> _carregarTotalProjetos() async {
+    try {
+      return 0;
+    } catch (e) {
+      print('Erro ao carregar total de projetos: $e');
+      return 0;
+    }
+  }
+
+  Widget _buildStarRating(double rating) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        const Icon(Icons.star, color: Colors.amber, size: 16),
+        const SizedBox(width: 4),
+        Text(
+          rating.toStringAsFixed(1),
+          style: TextStyle(
+            color: AppColors.white,
+            fontSize: 14,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+        const SizedBox(width: 4),
+        Text(
+          "${_getTotalAvaliacoes()}",
+          style: TextStyle(
+            color: AppColors.white.withOpacity(0.8),
+            fontSize: 12,
+          ),
+        ),
+      ],
+    );
+  }
+
+  String _getTotalAvaliacoes() {
+    if (_mediaAvaliacoes == 0.0) return "0";
+    return "";
   }
 
   String _formatarDataNascimento(DateTime? data) {
@@ -139,24 +208,7 @@ class _TelaPerfilState extends State<TelaPerfil> {
                                 ),
                               ),
                               const SizedBox(height: 8),
-                              Row(
-                                children: [
-                                  const Icon(
-                                    Icons.star,
-                                    color: Colors.amber,
-                                    size: 16,
-                                  ),
-                                  const SizedBox(width: 4),
-                                  Text(
-                                    "4.8",
-                                    style: TextStyle(
-                                      color: AppColors.white,
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                  ),
-                                ],
-                              ),
+                              _buildStarRating(_mediaAvaliacoes),
                             ],
                           ),
                         ),
@@ -267,8 +319,16 @@ class _TelaPerfilState extends State<TelaPerfil> {
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceAround,
                         children: [
-                          _buildStatItem('24', 'Trocas', Icons.swap_horiz),
-                          _buildStatItem('12', 'Projetos', Icons.work),
+                          _buildStatItem(
+                            _totalTrocas.toString(),
+                            'Trocas',
+                            Icons.swap_horiz,
+                          ),
+                          _buildStatItem(
+                            _totalProjetos.toString(),
+                            'Projetos',
+                            Icons.work,
+                          ),
                         ],
                       ),
                     ),

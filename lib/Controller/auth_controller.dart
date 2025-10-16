@@ -3,7 +3,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:skilmatch/Repository/auth_repository.dart';
 import 'package:skilmatch/Repository/usuario_repository.dart';
-import 'package:skilmatch/Model/usuario.dart';
+import 'package:skilmatch/Model/Usuario.dart';
+import 'package:skilmatch/Services/validadores.dart';
 
 class AuthController with ChangeNotifier {
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -36,13 +37,19 @@ class AuthController with ChangeNotifier {
     notifyListeners();
 
     try {
+      final usuarioComCPFLimpo = usuario.copyWith(
+        cpf: usuario.cpf.replaceAll(RegExp(r'\D'), ''),
+      );
+
       UserCredential userCredential = await _auth
           .createUserWithEmailAndPassword(
-            email: usuario.email,
+            email: usuarioComCPFLimpo.email,
             password: senha,
           );
 
-      Usuario usuarioComId = usuario.copyWith(id: userCredential.user!.uid);
+      Usuario usuarioComId = usuarioComCPFLimpo.copyWith(
+        id: userCredential.user!.uid,
+      );
 
       await _firestore
           .collection('usuarios')
@@ -55,6 +62,40 @@ class AuthController with ChangeNotifier {
     } finally {
       _isLoading = false;
       notifyListeners();
+    }
+  }
+
+  Future<bool> verificarCPFExistente(String cpf) async {
+    try {
+      final cpfLimpo = cpf.replaceAll(RegExp(r'\D'), '');
+
+      final query1 = await FirebaseFirestore.instance
+          .collection('usuarios')
+          .where('cpf', isEqualTo: cpfLimpo)
+          .limit(1)
+          .get();
+
+      if (query1.docs.isNotEmpty) return true;
+
+      final cpfFormatado = Validators.formatarCPF(cpf);
+      final query2 = await FirebaseFirestore.instance
+          .collection('usuarios')
+          .where('cpf', isEqualTo: cpfFormatado)
+          .limit(1)
+          .get();
+
+      if (query2.docs.isNotEmpty) return true;
+
+      final query3 = await FirebaseFirestore.instance
+          .collection('usuarios')
+          .where('cpf', isEqualTo: cpf)
+          .limit(1)
+          .get();
+
+      return query3.docs.isNotEmpty;
+    } catch (e) {
+      print('Erro ao verificar CPF: $e');
+      return false;
     }
   }
 

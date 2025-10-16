@@ -12,22 +12,25 @@ class MudarSenha extends StatefulWidget {
 
 class _MudarSenhaState extends State<MudarSenha> {
   final TextEditingController _senhaController = TextEditingController();
-  final TextEditingController _confirmarSenhaController = TextEditingController();
+  final TextEditingController _confirmarSenhaController =
+      TextEditingController();
 
   void _confirmarRedefinicao() {
     final authController = Provider.of<AuthController>(context, listen: false);
     authController.clearError();
-    
-    authController.updatePassword(
-      _senhaController.text,
-      _confirmarSenhaController.text,
-      context,
-    ).then((_) {
-      if (authController.errorMessage == null) {
-        _senhaController.clear();
-        _confirmarSenhaController.clear();
-      }
-    });
+
+    authController
+        .updatePassword(
+          _senhaController.text,
+          _confirmarSenhaController.text,
+          context,
+        )
+        .then((_) {
+          if (authController.errorMessage == null) {
+            _senhaController.clear();
+            _confirmarSenhaController.clear();
+          }
+        });
   }
 
   @override
@@ -92,10 +95,7 @@ class _MudarSenhaState extends State<MudarSenha> {
                       padding: const EdgeInsets.only(bottom: 16.0),
                       child: Text(
                         authController.errorMessage!,
-                        style: const TextStyle(
-                          color: Colors.red,
-                          fontSize: 16,
-                        ),
+                        style: const TextStyle(color: Colors.red, fontSize: 16),
                         textAlign: TextAlign.center,
                       ),
                     ),
@@ -103,7 +103,11 @@ class _MudarSenhaState extends State<MudarSenha> {
                     width: 300,
                     height: 60,
                     child: authController.isLoading
-                        ? const Center(child: CircularProgressIndicator(color: AppColors.roxo))
+                        ? const Center(
+                            child: CircularProgressIndicator(
+                              color: AppColors.roxo,
+                            ),
+                          )
                         : ElevatedButton(
                             onPressed: _confirmarRedefinicao,
                             style: ElevatedButton.styleFrom(

@@ -27,7 +27,7 @@ class _TelaProcuraTrocasState extends State<TelaProcuraTrocas> {
 
   final List<Widget> _telas = [
     const SizedBox.shrink(),
-    const TelaMinhastrocas(),
+    const TelaMinhasTrocas(),
     const SizedBox.shrink(),
     const TelaMensagens(),
     const TelaPerfil(),
