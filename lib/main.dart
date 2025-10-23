@@ -6,6 +6,7 @@ import 'package:skilmatch/Controller/auth_controller.dart';
 import 'package:skilmatch/Controller/usuario_controller.dart';
 import 'package:skilmatch/Controller/mensagem_controller.dart';
 import 'package:skilmatch/Controller/avaliacao_controller.dart';
+import 'package:skilmatch/Controller/chat_controller.dart';
 import 'package:skilmatch/View/tela_login.dart';
 import 'package:skilmatch/View/tela_ProcurarTrocas.dart';
 import 'firebase_options.dart';
@@ -25,6 +26,7 @@ class MyApp extends StatelessWidget {
       providers: [
         ChangeNotifierProvider(create: (_) => AuthController()),
         ChangeNotifierProvider(create: (_) => UsuarioController()),
+        ChangeNotifierProvider(create: (context) => ChatController()),
         ChangeNotifierProvider(create: (_) => MensagemController()),
         ChangeNotifierProvider(create: (_) => AvaliacaoController()),
       ],

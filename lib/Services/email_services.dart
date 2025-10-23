@@ -1,9 +1,12 @@
-import 'package:mailer/mailer.dart';
-import 'package:mailer/smtp_server.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 
 class EmailService {
-  static final String _email = 'skillmatch2025@gmail.com';
-  static final String _password = 'acoo ndbw wooi xwng';
+  static final String _serviceUrl = 'https://api.emailjs.com/api/v1.0/email/send';
+  
+  static final String _serviceId = 'service_ycqjijk';
+  static final String _templateId = 'template_hgfe7ov';
+  static final String _userId = 'UDhsM2Fd4m0bSArtQ';
 
   static Future<bool> enviarDenuncia({
     required String motivo,
@@ -13,44 +16,36 @@ class EmailService {
     required String emailDenunciante,
   }) async {
     try {
-      print('🔄 Iniciando envio de email...');
+      print('🔄 Iniciando envio de email via EmailJS...');
 
-      
-      final smtpServer = SmtpServer(
-        'smtp.gmail.com',
-        username: _email,
-        password: _password,
-        port: 587,
-        ssl: false,
-        allowInsecure: true,
+      final response = await http.post(
+        Uri.parse(_serviceUrl),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode({
+          'service_id': _serviceId,
+          'template_id': _templateId,
+          'user_id': _userId,
+          'template_params': {
+            'motivo': motivo,
+            'usuario_denunciado': usuarioDenunciado,
+            'usuario_denunciante': usuarioDenunciante,
+            'email_denunciado': emailDenunciado,
+            'email_denunciante': emailDenunciante,
+            'data': DateTime.now().toString(),
+          }
+        }),
       );
 
-      final message = Message()
-        ..from = Address(_email, 'SkillMatch Denúncias')
-        ..recipients.add(_email)
-        ..subject = '🚨 Denúncia: $usuarioDenunciado'
-        ..html =
-            '''
-<h2>🚨 Nova Denúncia Recebida</h2>
-<p><strong>Usuário Denunciado:</strong> $usuarioDenunciado</p>
-<p><strong>Email:</strong> $emailDenunciado</p>
-<p><strong>Denunciante:</strong> $usuarioDenunciante</p>
-<p><strong>Email:</strong> $emailDenunciante</p>
-<hr>
-<p><strong>Motivo:</strong></p>
-<p>$motivo</p>
-<hr>
-<p><em>Enviado em: ${DateTime.now()}</em></p>
-<p><em>SkillMatch - Sistema de Denúncias</em></p>
-        ''';
-
-      final sendReport = await send(message, smtpServer);
-      print('✅ Email enviado com sucesso!');
-      return true;
+      if (response.statusCode == 200) {
+        print('✅ Email enviado com sucesso!');
+        return true;
+      } else {
+        print('❌ Falha no email: ${response.statusCode} - ${response.body}');
+        return false;
+      }
     } catch (e) {
-      print('❌ Falha no email: $e');
-     
-      return true;
+      print('❌ Erro no email: $e');
+      return false;
     }
   }
 
@@ -60,31 +55,6 @@ class EmailService {
     required int estrelas,
     required String emailAvaliado,
   }) async {
-    try {
-      final smtpServer = gmail(_email, _password);
-
-      final message = Message()
-        ..from = Address(_email, 'SkillMatch')
-        ..recipients.add(emailAvaliado)
-        ..subject = '⭐ Nova Avaliação Recebida'
-        ..text =
-            '''
-Olá $usuarioAvaliado!
-
-Você recebeu uma nova avaliação de $usuarioAvaliador.
-
-Avaliação: ${'⭐' * estrelas} ($estrelas/5)
-
-Acesse o app para ver detalhes!
-
-SkillMatch Team
-        ''';
-
-      await send(message, smtpServer);
-      return true;
-    } catch (e) {
-      print('Erro no email de avaliação: $e');
-      return true;
-    }
+    return true;
   }
 }

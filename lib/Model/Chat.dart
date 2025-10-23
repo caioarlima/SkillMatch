@@ -1,3 +1,6 @@
+// CHAT.dart
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 class Chat {
   final String chatId;
   final List<String> participantes;
@@ -30,7 +33,7 @@ class Chat {
       chatId: chatId,
       participantes: List<String>.from(map['participantes']),
       ultimaMensagem: map['ultimaMensagem'],
-      timestamp: map['timestamp'].toDate(),
+      timestamp: (map['timestamp'] as Timestamp).toDate(),
       usuariosInfo: Map<String, String>.from(map['usuariosInfo']),
       usuariosFotos: Map<String, String>.from(map['usuariosFotos'] ?? {}),
     );

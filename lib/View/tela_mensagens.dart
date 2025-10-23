@@ -1,10 +1,12 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../Controller/mensagem_controller.dart';
+import '../Controller/chat_controller.dart';
 import '../Controller/auth_controller.dart';
 import '../Controller/colors.dart';
 import '../Model/Chat.dart';
+import '../Controller/usuario_controller.dart';
+import '../Model/Usuario.dart';
 import 'tela_chat.dart';
 
 class TelaMensagens extends StatefulWidget {
@@ -28,15 +30,25 @@ class _TelaMensagensState extends State<TelaMensagens> {
 
   void _carregarChats() {
     final authController = Provider.of<AuthController>(context, listen: false);
-    final mensagemController = Provider.of<MensagemController>(
-      context,
-      listen: false,
-    );
+    final chatController = Provider.of<ChatController>(context, listen: false);
 
     final user = authController.currentUser;
     if (user != null) {
-      mensagemController.carregarChats(user.uid);
+      chatController.carregarChatsUsuario(user.uid);
     }
+  }
+
+  String _getNomeOutroUsuario(Chat chat) {
+    final authController = Provider.of<AuthController>(context, listen: false);
+    final user = authController.currentUser;
+    final meuId = user?.uid ?? "";
+
+    for (final participanteId in chat.participantes) {
+      if (participanteId != meuId) {
+        return chat.usuariosInfo[participanteId] ?? 'Usuário Sem Nome';
+      }
+    }
+    return chat.participantes.isNotEmpty ? chat.participantes[0] : '';
   }
 
   List<Chat> _filtrarChats(List<Chat> chats, String query) {
@@ -48,129 +60,157 @@ class _TelaMensagensState extends State<TelaMensagens> {
     }).toList();
   }
 
-  String _getNomeOutroUsuario(Chat chat) {
-    final authController = Provider.of<AuthController>(context, listen: false);
-    final user = authController.currentUser;
-    final meuId = user?.uid ?? "";
-
-    for (final participanteId in chat.participantes) {
-      if (participanteId != meuId) {
-        return chat.usuariosInfo[participanteId] ?? 'Usuário';
-      }
-    }
-    return chat.participantes.isNotEmpty ? chat.participantes[0] : '';
-  }
-
   @override
   Widget build(BuildContext context) {
-    final controller = Provider.of<MensagemController>(context);
+    final chatController = Provider.of<ChatController>(context);
     final authController = Provider.of<AuthController>(context, listen: false);
+    final usuarioController = Provider.of<UsuarioController>(
+      context,
+      listen: false,
+    );
     final user = authController.currentUser;
     final meuId = user?.uid ?? "";
-
-    final chatsFiltrados = _filtrarChats(controller.chats, _searchQuery);
+    final chatsFiltrados = _filtrarChats(chatController.chats, _searchQuery);
 
     return Scaffold(
       backgroundColor: AppColors.fundo,
-      appBar: AppBar(
-        backgroundColor: AppColors.roxo,
-        foregroundColor: AppColors.white,
-        title: Text(
-          'Mensagens',
-          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-        ),
-        centerTitle: true,
-        elevation: 0,
-      ),
-      body: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Container(
-              decoration: BoxDecoration(
-                color: AppColors.white,
-                borderRadius: BorderRadius.circular(25),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.1),
-                    blurRadius: 8,
-                    offset: Offset(0, 2),
+      body: SafeArea(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            const SizedBox(height: 16),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Text(
+                    "Mensagens",
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: AppColors.black,
+                      fontSize: 32,
+                      fontWeight: FontWeight.bold,
+                      height: 1.2,
+                    ),
                   ),
-                ],
-              ),
-              child: TextField(
-                controller: _searchController,
-                onChanged: (value) {
-                  setState(() {
-                    _searchQuery = value;
-                  });
-                },
-                decoration: InputDecoration(
-                  hintText: "Buscar conversas...",
-                  hintStyle: TextStyle(color: AppColors.cinza),
-                  border: InputBorder.none,
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 20.0,
-                    vertical: 16.0,
+                  const SizedBox(height: 8),
+                  Text(
+                    "Converse com pessoas e combine trocas",
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: AppColors.cinza,
+                      fontSize: 16,
+                      height: 1.4,
+                    ),
                   ),
-                  prefixIcon: Icon(Icons.search, color: AppColors.roxo),
-                  suffixIcon: _searchQuery.isNotEmpty
-                      ? IconButton(
-                          icon: Icon(Icons.clear, color: AppColors.cinza),
-                          onPressed: () {
-                            setState(() {
-                              _searchQuery = '';
-                              _searchController.clear();
-                            });
-                          },
-                        )
-                      : null,
-                ),
-                keyboardType: TextInputType.text,
-              ),
-            ),
-          ),
-          Expanded(
-            child: controller.carregando
-                ? Center(
-                    child: CircularProgressIndicator(color: AppColors.roxo),
-                  )
-                : chatsFiltrados.isEmpty
-                ? Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          _searchQuery.isEmpty
-                              ? Icons.chat_bubble_outline
-                              : Icons.search_off,
-                          size: 64,
-                          color: AppColors.cinza.withOpacity(0.5),
-                        ),
-                        SizedBox(height: 16),
-                        Text(
-                          _searchQuery.isEmpty
-                              ? 'Nenhuma conversa encontrada'
-                              : 'Nenhum chat encontrado com "$_searchQuery"',
-                          style: TextStyle(
-                            fontSize: 16,
-                            color: AppColors.cinza,
-                          ),
-                          textAlign: TextAlign.center,
+                  const SizedBox(height: 24),
+                  Container(
+                    decoration: BoxDecoration(
+                      color: AppColors.white,
+                      borderRadius: BorderRadius.circular(16),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.08),
+                          blurRadius: 12,
+                          offset: const Offset(0, 4),
                         ),
                       ],
                     ),
-                  )
-                : ListView.builder(
-                    padding: EdgeInsets.symmetric(horizontal: 16),
-                    itemCount: chatsFiltrados.length,
-                    itemBuilder: (context, index) {
-                      final chat = chatsFiltrados[index];
-                      return _ItemConversa(chat: chat, meuId: meuId);
-                    },
+                    child: TextField(
+                      controller: _searchController,
+                      onChanged: (value) {
+                        setState(() {
+                          _searchQuery = value;
+                        });
+                      },
+                      decoration: InputDecoration(
+                        hintText: "Buscar conversas...",
+                        hintStyle: TextStyle(
+                          color: AppColors.cinza.withOpacity(0.7),
+                        ),
+                        border: InputBorder.none,
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 20.0,
+                          vertical: 18.0,
+                        ),
+                        prefixIcon: Container(
+                          margin: const EdgeInsets.only(left: 8, right: 4),
+                          child: Icon(
+                            Icons.search,
+                            color: AppColors.roxo,
+                            size: 24,
+                          ),
+                        ),
+                        suffixIcon: _searchQuery.isNotEmpty
+                            ? IconButton(
+                                icon: Icon(
+                                  Icons.clear,
+                                  color: AppColors.cinza,
+                                  size: 20,
+                                ),
+                                onPressed: () {
+                                  setState(() {
+                                    _searchQuery = '';
+                                    _searchController.clear();
+                                  });
+                                },
+                              )
+                            : null,
+                      ),
+                      style: TextStyle(color: AppColors.black, fontSize: 16),
+                    ),
                   ),
-          ),
-        ],
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
+            Expanded(
+              child: chatController.loading
+                  ? Center(
+                      child: CircularProgressIndicator(color: AppColors.roxo),
+                    )
+                  : chatsFiltrados.isEmpty
+                  ? Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            _searchQuery.isEmpty
+                                ? Icons.chat_bubble_outline
+                                : Icons.search_off,
+                            size: 64,
+                            color: AppColors.cinza.withOpacity(0.5),
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            _searchQuery.isEmpty
+                                ? 'Nenhuma conversa encontrada'
+                                : 'Nenhum chat encontrado com "$_searchQuery"',
+                            style: TextStyle(
+                              fontSize: 16,
+                              color: AppColors.cinza,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ],
+                      ),
+                    )
+                  : ListView.builder(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      itemCount: chatsFiltrados.length,
+                      itemBuilder: (context, index) {
+                        final chat = chatsFiltrados[index];
+                        return _ItemConversa(
+                          chat: chat,
+                          meuId: meuId,
+                          usuarioController: usuarioController,
+                        );
+                      },
+                    ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -179,47 +219,83 @@ class _TelaMensagensState extends State<TelaMensagens> {
 class _ItemConversa extends StatelessWidget {
   final Chat chat;
   final String meuId;
+  final UsuarioController usuarioController;
 
-  _ItemConversa({required this.chat, required this.meuId});
+  _ItemConversa({
+    required this.chat,
+    required this.meuId,
+    required this.usuarioController,
+  });
 
-  Widget _buildUserAvatar(String userId, String userName) {
-    final userFoto = chat.usuariosFotos?[userId];
-
-    if (userFoto != null && userFoto.isNotEmpty) {
-      try {
-        final bytes = base64Decode(userFoto);
-        return CircleAvatar(radius: 25, backgroundImage: MemoryImage(bytes));
-      } catch (e) {
-        print("Erro ao decodificar imagem Base64: $e");
+  String _getOutroUsuarioId() {
+    for (final participanteId in chat.participantes) {
+      if (participanteId != meuId) {
+        return participanteId;
       }
     }
+    return chat.participantes.isNotEmpty ? chat.participantes[0] : '';
+  }
 
-    return CircleAvatar(
-      radius: 25,
-      backgroundColor: AppColors.roxo,
-      child: Text(
-        userName[0].toUpperCase(),
-        style: TextStyle(
-          color: AppColors.white,
-          fontSize: 18,
-          fontWeight: FontWeight.bold,
-        ),
-      ),
+  Widget _buildUserAvatarWithFallback(String outroUsuarioId) {
+    return FutureBuilder<Usuario?>(
+      // ⭐️ CORREÇÃO DO NOME DO MÉTODO AQUI
+      future: usuarioController.buscarUsuarioPorId(outroUsuarioId),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return CircleAvatar(
+            radius: 25,
+            backgroundColor: AppColors.roxo.withOpacity(0.2),
+            child: CircularProgressIndicator(
+              color: AppColors.roxo,
+              strokeWidth: 2,
+            ),
+          );
+        }
+
+        final outroUsuario = snapshot.data;
+        final userName = outroUsuario?.nomeCompleto ?? 'S';
+        final userFoto = outroUsuario?.fotoUrl;
+
+        if (userFoto != null && userFoto.isNotEmpty) {
+          if (userFoto.startsWith('http') || userFoto.startsWith('https')) {
+            return CircleAvatar(
+              radius: 25,
+              backgroundImage: NetworkImage(userFoto),
+            );
+          }
+
+          try {
+            final bytes = base64Decode(userFoto);
+            return CircleAvatar(
+              radius: 25,
+              backgroundImage: MemoryImage(bytes),
+            );
+          } catch (e) {}
+        }
+
+        return CircleAvatar(
+          radius: 25,
+          backgroundColor: AppColors.roxo,
+          child: Text(
+            userName.isNotEmpty ? userName[0].toUpperCase() : '?',
+            style: TextStyle(
+              color: AppColors.white,
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        );
+      },
     );
   }
 
   Widget _buildBadgeMensagensNaoLidas(String chatId) {
-    return Consumer<MensagemController>(
-      builder: (context, mensagemController, child) {
-        final mensagensNaoLidasLocal = mensagemController
-            .contarMensagensNaoLidasLocal(chatId, meuId);
-
+    return Consumer<ChatController>(
+      builder: (context, chatController, child) {
         return FutureBuilder<int>(
-          future: mensagemController.contarMensagensNaoLidas(chatId, meuId),
+          future: chatController.contarMensagensNaoLidas(chatId, meuId),
           builder: (context, snapshot) {
-            final mensagensNaoLidas = snapshot.hasData
-                ? snapshot.data!
-                : mensagensNaoLidasLocal;
+            final mensagensNaoLidas = snapshot.hasData ? snapshot.data! : 0;
 
             if (mensagensNaoLidas > 0) {
               return Container(
@@ -247,24 +323,11 @@ class _ItemConversa extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final mensagemController = Provider.of<MensagemController>(
-      context,
-      listen: false,
-    );
+    final chatController = Provider.of<ChatController>(context, listen: false);
 
-    String _getOutroUsuarioId() {
-      for (final participanteId in chat.participantes) {
-        if (participanteId != meuId) {
-          return participanteId;
-        }
-      }
-      return chat.participantes.isNotEmpty ? chat.participantes[0] : '';
-    }
-
-    String _getNomeOutroUsuario() {
-      final outroUsuarioId = _getOutroUsuarioId();
-      return chat.usuariosInfo[outroUsuarioId] ?? 'Usuário';
-    }
+    final outroUsuarioId = _getOutroUsuarioId();
+    final outroUsuarioNomeDoChat =
+        chat.usuariosInfo[outroUsuarioId] ?? 'Seu Nome';
 
     String _formatarHora() {
       final now = DateTime.now();
@@ -274,16 +337,12 @@ class _ItemConversa extends StatelessWidget {
         chat.timestamp.month,
         chat.timestamp.day,
       );
-
       if (messageDate == today) {
         return '${chat.timestamp.hour}:${chat.timestamp.minute.toString().padLeft(2, '0')}';
       } else {
         return '${chat.timestamp.day}/${chat.timestamp.month}';
       }
     }
-
-    final outroUsuarioNome = _getNomeOutroUsuario();
-    final outroUsuarioId = _getOutroUsuarioId();
 
     return Card(
       margin: EdgeInsets.only(bottom: 12),
@@ -293,7 +352,7 @@ class _ItemConversa extends StatelessWidget {
         contentPadding: EdgeInsets.all(16),
         leading: Stack(
           children: [
-            _buildUserAvatar(outroUsuarioId, outroUsuarioNome),
+            _buildUserAvatarWithFallback(outroUsuarioId),
             Positioned(
               top: 0,
               right: 0,
@@ -301,13 +360,20 @@ class _ItemConversa extends StatelessWidget {
             ),
           ],
         ),
-        title: Text(
-          outroUsuarioNome,
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
-            color: AppColors.black,
-          ),
+        title: FutureBuilder<Usuario?>(
+          // ⭐️ CORREÇÃO DO NOME DO MÉTODO AQUI
+          future: usuarioController.buscarUsuarioPorId(outroUsuarioId),
+          builder: (context, snapshot) {
+            final nome = snapshot.data?.nomeCompleto ?? outroUsuarioNomeDoChat;
+            return Text(
+              nome,
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: AppColors.black,
+              ),
+            );
+          },
         ),
         subtitle: Text(
           chat.ultimaMensagem.isNotEmpty
@@ -329,7 +395,7 @@ class _ItemConversa extends StatelessWidget {
                   TelaChat(outroUsuario: outroUsuarioId, chatId: chat.chatId),
             ),
           ).then((_) {
-            mensagemController.carregarChats(meuId);
+            chatController.carregarChatsUsuario(meuId);
           });
         },
       ),

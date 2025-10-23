@@ -2,9 +2,18 @@ import 'package:flutter/material.dart';
 import '../Model/Mensagem.dart';
 import '../Model/Chat.dart';
 import '../Repository/mensagem_repository.dart';
+import '../Repository/usuario_repository.dart'; // Import necessário para o UsuarioRepository
 
 class MensagemController with ChangeNotifier {
-  final MensagemRepository _repository = MensagemRepository();
+  // 1. Inicializa o UsuarioRepository
+  final UsuarioRepository _usuarioRepository = UsuarioRepository();
+  
+  // 2. Declara o MensagemRepository
+  final MensagemRepository _repository; 
+
+  // 3. Construtor: Inicializa o MensagemRepository injetando o UsuarioRepository
+  MensagemController() : _repository = MensagemRepository(UsuarioRepository()); 
+  
   List<Chat> _chats = [];
   List<Mensagem> _mensagens = [];
   bool _carregando = false;

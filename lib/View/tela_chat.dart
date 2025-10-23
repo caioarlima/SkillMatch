@@ -2,13 +2,12 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import '../Controller/mensagem_controller.dart';
+import '../Controller/chat_controller.dart';
 import '../Controller/auth_controller.dart';
 import '../Controller/usuario_controller.dart';
 import '../Controller/avaliacao_controller.dart';
 import '../Model/Mensagem.dart';
 import '../Controller/colors.dart';
-import 'package:skilmatch/Repository/chat_repository.dart';
 
 class TelaChat extends StatefulWidget {
   final String outroUsuario;
@@ -30,11 +29,8 @@ class _TelaChatState extends State<TelaChat> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final controller = Provider.of<MensagemController>(
-        context,
-        listen: false,
-      );
-      controller.carregarMensagens(widget.chatId);
+      final controller = Provider.of<ChatController>(context, listen: false);
+      controller.carregarMensagensChat(widget.chatId);
       _carregarDadosUsuario();
       _marcarMensagensComoLidas();
     });
@@ -42,28 +38,29 @@ class _TelaChatState extends State<TelaChat> {
 
   void _marcarMensagensComoLidas() {
     final authController = Provider.of<AuthController>(context, listen: false);
-    final mensagemController = Provider.of<MensagemController>(
-      context,
-      listen: false,
-    );
+    final chatController = Provider.of<ChatController>(context, listen: false);
     final user = authController.currentUser;
 
     if (user != null) {
-      Future.delayed(Duration(milliseconds: 500), () {
-        mensagemController.marcarMensagensComoLidas(widget.chatId, user.uid);
-      });
+      final mensagensNaoLidas = chatController.mensagens
+          .where((msg) => msg.senderId != user.uid && !msg.visualizadaPor.contains(user.uid))
+          .map((msg) => msg.mensagemId)
+          .toList();
+
+      if (mensagensNaoLidas.isNotEmpty) {
+        chatController.marcarMensagensComoLidas(
+          chatId: widget.chatId,
+          userId: user.uid,
+          mensagemIds: mensagensNaoLidas,
+        );
+      }
     }
   }
 
   Future<void> _carregarDadosUsuario() async {
     try {
-      final usuarioController = Provider.of<UsuarioController>(
-        context,
-        listen: false,
-      );
-      final usuario = await usuarioController.buscarUsuarioPorId(
-        widget.outroUsuario,
-      );
+      final usuarioController = Provider.of<UsuarioController>(context, listen: false);
+      final usuario = await usuarioController.buscarUsuarioPorId(widget.outroUsuario);
 
       if (usuario != null && mounted) {
         setState(() {
@@ -101,14 +98,8 @@ class _TelaChatState extends State<TelaChat> {
   void _mostrarDialogoAvaliacao(BuildContext context) {
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       try {
-        final authController = Provider.of<AuthController>(
-          context,
-          listen: false,
-        );
-        final avaliacaoController = Provider.of<AvaliacaoController>(
-          context,
-          listen: false,
-        );
+        final authController = Provider.of<AuthController>(context, listen: false);
+        final avaliacaoController = Provider.of<AvaliacaoController>(context, listen: false);
         final usuarioLogado = authController.currentUser;
 
         if (usuarioLogado != null) {
@@ -302,28 +293,15 @@ class _TelaChatState extends State<TelaChat> {
     required String comentario,
   }) async {
     try {
-      final authController = Provider.of<AuthController>(
-        context,
-        listen: false,
-      );
-      final avaliacaoController = Provider.of<AvaliacaoController>(
-        context,
-        listen: false,
-      );
-      final usuarioController = Provider.of<UsuarioController>(
-        context,
-        listen: false,
-      );
+      final authController = Provider.of<AuthController>(context, listen: false);
+      final avaliacaoController = Provider.of<AvaliacaoController>(context, listen: false);
+      final usuarioController = Provider.of<UsuarioController>(context, listen: false);
 
       final usuarioLogado = authController.currentUser;
       if (usuarioLogado == null) return;
 
-      final avaliador = await usuarioController.buscarUsuarioPorId(
-        usuarioLogado.uid,
-      );
-      final avaliado = await usuarioController.buscarUsuarioPorId(
-        widget.outroUsuario,
-      );
+      final avaliador = await usuarioController.buscarUsuarioPorId(usuarioLogado.uid);
+      final avaliado = await usuarioController.buscarUsuarioPorId(widget.outroUsuario);
 
       if (avaliador != null && avaliado != null) {
         final sucesso = await avaliacaoController.salvarAvaliacao(
@@ -361,10 +339,7 @@ class _TelaChatState extends State<TelaChat> {
   Future<void> _encerrarChat() async {
     try {
       final firestore = FirebaseFirestore.instance;
-      final authController = Provider.of<AuthController>(
-        context,
-        listen: false,
-      );
+      final authController = Provider.of<AuthController>(context, listen: false);
       final usuarioLogado = authController.currentUser;
 
       if (usuarioLogado == null) return;
@@ -409,51 +384,32 @@ class _TelaChatState extends State<TelaChat> {
 
   Future<void> _enviarDenuncia(String motivo) async {
     try {
-      final authController = Provider.of<AuthController>(
-        context,
-        listen: false,
-      );
-      final avaliacaoController = Provider.of<AvaliacaoController>(
-        context,
-        listen: false,
-      );
-      final usuarioController = Provider.of<UsuarioController>(
-        context,
-        listen: false,
-      );
+      final authController = Provider.of<AuthController>(context, listen: false);
+      final usuarioController = Provider.of<UsuarioController>(context, listen: false);
 
       final usuarioLogado = authController.currentUser;
       if (usuarioLogado == null) return;
 
-      final denunciante = await usuarioController.buscarUsuarioPorId(
-        usuarioLogado.uid,
-      );
-      final denunciado = await usuarioController.buscarUsuarioPorId(
-        widget.outroUsuario,
-      );
+      final denunciante = await usuarioController.buscarUsuarioPorId(usuarioLogado.uid);
+      final denunciado = await usuarioController.buscarUsuarioPorId(widget.outroUsuario);
 
       if (denunciante != null && denunciado != null) {
-        final sucesso = await avaliacaoController.enviarDenuncia(
+        await usuarioController.reportarUsuario(
+          usuarioDenunciadoId: widget.outroUsuario,
+          usuarioDenuncianteId: usuarioLogado.uid,
           motivo: motivo,
-          usuarioDenunciado: denunciado,
-          usuarioDenunciante: denunciante,
+          usuarioDenunciadoNome: denunciado.nomeCompleto,
+          usuarioDenuncianteNome: denunciante.nomeCompleto,
+          emailDenunciado: denunciado.email,
+          emailDenunciante: denunciante.email,
         );
 
-        if (sucesso) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Denúncia enviada com sucesso!'),
-              backgroundColor: Colors.green,
-            ),
-          );
-        } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Erro ao enviar denúncia. Tente novamente.'),
-              backgroundColor: Colors.red,
-            ),
-          );
-        }
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Denúncia enviada com sucesso!'),
+            backgroundColor: Colors.green,
+          ),
+        );
       }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -467,13 +423,13 @@ class _TelaChatState extends State<TelaChat> {
 
   @override
   Widget build(BuildContext context) {
-    final controller = Provider.of<MensagemController>(context);
+    final chatController = Provider.of<ChatController>(context);
     final authController = Provider.of<AuthController>(context, listen: false);
     final user = authController.currentUser;
     final meuUid = user?.uid ?? "";
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (_scrollController.hasClients && controller.mensagens.isNotEmpty) {
+      if (_scrollController.hasClients && chatController.mensagens.isNotEmpty) {
         _scrollController.jumpTo(_scrollController.position.maxScrollExtent);
       }
     });
@@ -544,11 +500,11 @@ class _TelaChatState extends State<TelaChat> {
                   colors: [AppColors.roxo.withOpacity(0.05), AppColors.fundo],
                 ),
               ),
-              child: controller.carregando
+              child: chatController.loading
                   ? Center(
                       child: CircularProgressIndicator(color: AppColors.roxo),
                     )
-                  : controller.mensagens.isEmpty
+                  : chatController.mensagens.isEmpty
                   ? Center(
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
@@ -572,9 +528,9 @@ class _TelaChatState extends State<TelaChat> {
                   : ListView.builder(
                       controller: _scrollController,
                       padding: EdgeInsets.all(16),
-                      itemCount: controller.mensagens.length,
+                      itemCount: chatController.mensagens.length,
                       itemBuilder: (context, index) {
-                        final mensagem = controller.mensagens[index];
+                        final mensagem = chatController.mensagens[index];
                         return _BalaoMensagem(
                           mensagem: mensagem,
                           meuUid: meuUid,
@@ -758,31 +714,18 @@ class _CampoEnvioState extends State<_CampoEnvio> {
   void _enviarMensagem() async {
     if (_textController.text.trim().isEmpty) return;
 
-    final controller = Provider.of<MensagemController>(context, listen: false);
-    final usuarioController = Provider.of<UsuarioController>(
-      context,
-      listen: false,
+    final chatController = Provider.of<ChatController>(context, listen: false);
+
+    final sucesso = await chatController.enviarMensagem(
+      chatId: widget.chatId,
+      texto: _textController.text.trim(),
+      senderId: widget.meuUid,
     );
 
-    final meuUsuario = await usuarioController.buscarUsuarioPorId(
-      widget.meuUid,
-    );
-    final outroUsuario = await usuarioController.buscarUsuarioPorId(
-      widget.outroUsuario,
-    );
-
-    await controller.enviarMensagem(
-      widget.chatId,
-      _textController.text.trim(),
-      widget.meuUid,
-      meuUsuario?.nomeCompleto ?? 'Usuário',
-      outroUsuario?.nomeCompleto ?? 'Usuário',
-      meuUsuario?.fotoUrl ?? '',
-      outroUsuario?.fotoUrl ?? '',
-    );
-
-    _textController.clear();
-    widget.onMensagemEnviada();
+    if (sucesso) {
+      _textController.clear();
+      widget.onMensagemEnviada();
+    }
   }
 
   @override

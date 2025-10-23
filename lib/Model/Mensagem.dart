@@ -1,3 +1,6 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'Usuario.dart';
+
 class Mensagem {
   final String mensagemId;
   final String texto;
@@ -5,6 +8,7 @@ class Mensagem {
   final DateTime timestamp;
   final bool lida;
   final List<String> visualizadaPor;
+  final Usuario? remetente;
 
   Mensagem({
     required this.mensagemId,
@@ -13,6 +17,7 @@ class Mensagem {
     required this.timestamp,
     this.lida = false,
     this.visualizadaPor = const [],
+    this.remetente,
   });
 
   Map<String, dynamic> toMap() {
@@ -30,7 +35,7 @@ class Mensagem {
       mensagemId: mensagemId,
       texto: map['texto'],
       senderId: map['senderId'],
-      timestamp: map['timestamp'].toDate(),
+      timestamp: (map['timestamp'] as Timestamp).toDate(),
       lida: map['lida'] ?? false,
       visualizadaPor: List<String>.from(map['visualizadaPor'] ?? []),
     );
@@ -43,6 +48,7 @@ class Mensagem {
     DateTime? timestamp,
     bool? lida,
     List<String>? visualizadaPor,
+    Usuario? remetente,
   }) {
     return Mensagem(
       mensagemId: mensagemId ?? this.mensagemId,
@@ -51,6 +57,7 @@ class Mensagem {
       timestamp: timestamp ?? this.timestamp,
       lida: lida ?? this.lida,
       visualizadaPor: visualizadaPor ?? this.visualizadaPor,
+      remetente: remetente ?? this.remetente,
     );
   }
 }

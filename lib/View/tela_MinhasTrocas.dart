@@ -23,121 +23,190 @@ class _TelaMinhasTrocasState extends State<TelaMinhasTrocas> {
     final usuarioLogado = authController.currentUser;
 
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: AppColors.roxo,
-        foregroundColor: AppColors.white,
-        title: Text('Minhas Trocas'),
-        elevation: 0,
-      ),
-      body: usuarioLogado == null
-          ? Center(
-              child: Text(
-                'Faça login para ver suas avaliações',
-                style: TextStyle(color: AppColors.cinza),
+      backgroundColor: AppColors.fundo,
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: <Widget>[
+              Text(
+                "Minhas Trocas",
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: AppColors.black,
+                  fontSize: 32,
+                  fontWeight: FontWeight.bold,
+                  height: 1.2,
+                ),
               ),
-            )
-          : StreamBuilder<List<Avaliacao>>(
-              stream: Provider.of<AvaliacaoController>(
-                context,
-              ).getAvaliacoesUsuario(usuarioLogado.uid),
-              builder: (context, snapshot) {
-                print('📊 SNAPSHOT: ${snapshot.connectionState}');
-                print('📊 HAS ERROR: ${snapshot.hasError}');
-                print('📊 ERROR: ${snapshot.error}');
-                print('📊 HAS DATA: ${snapshot.hasData}');
-                print('📊 DATA LENGTH: ${snapshot.data?.length}');
-                print('📊 USER ID: ${usuarioLogado.uid}');
+              const SizedBox(height: 8),
+              Text(
+                "Acompanhe suas avaliações e trocas realizadas",
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: AppColors.cinza,
+                  fontSize: 16,
+                  height: 1.4,
+                ),
+              ),
+              const SizedBox(height: 24),
 
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return Center(
-                    child: CircularProgressIndicator(color: AppColors.roxo),
-                  );
-                }
-
-                if (snapshot.hasError) {
-                  return Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(Icons.error, color: Colors.red, size: 64),
-                        SizedBox(height: 16),
-                        Text(
-                          'Erro ao carregar avaliações',
-                          style: TextStyle(color: Colors.red),
-                        ),
-                        SizedBox(height: 8),
-                        Text(
-                          'Detalhes: ${snapshot.error}',
-                          style: TextStyle(
-                            color: AppColors.cinza,
-                            fontSize: 12,
+              usuarioLogado == null
+                  ? Container(
+                      padding: const EdgeInsets.all(40),
+                      decoration: BoxDecoration(
+                        color: AppColors.white,
+                        borderRadius: BorderRadius.circular(16),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.08),
+                            blurRadius: 12,
+                            offset: const Offset(0, 4),
                           ),
-                          textAlign: TextAlign.center,
-                        ),
-                      ],
+                        ],
+                      ),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.lock_outline,
+                              color: AppColors.cinza.withOpacity(0.6),
+                              size: 70),
+                          const SizedBox(height: 20),
+                          Text(
+                            'Faça login para ver suas avaliações',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              color: AppColors.cinza,
+                              fontSize: 16,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      ),
+                    )
+                  : StreamBuilder<List<Avaliacao>>(
+                      stream: Provider.of<AvaliacaoController>(
+                        context,
+                      ).getAvaliacoesUsuario(usuarioLogado.uid),
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState ==
+                            ConnectionState.waiting) {
+                          return Container(
+                            padding: const EdgeInsets.all(40),
+                            decoration: BoxDecoration(
+                              color: AppColors.white,
+                              borderRadius: BorderRadius.circular(16),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.08),
+                                  blurRadius: 12,
+                                  offset: const Offset(0, 4),
+                                ),
+                              ],
+                            ),
+                            child: Center(
+                              child: CircularProgressIndicator(color: AppColors.roxo),
+                            ),
+                          );
+                        }
+
+                        if (snapshot.hasError) {
+                          return Container(
+                            padding: const EdgeInsets.all(24),
+                            decoration: BoxDecoration(
+                              color: AppColors.white,
+                              borderRadius: BorderRadius.circular(16),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.08),
+                                  blurRadius: 12,
+                                  offset: const Offset(0, 4),
+                                ),
+                              ],
+                            ),
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(Icons.error_outline,
+                                    color: Colors.redAccent, size: 72),
+                                const SizedBox(height: 20),
+                                Text(
+                                  'Erro ao carregar avaliações',
+                                  style: TextStyle(
+                                    color: Colors.redAccent,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 16,
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  'Tente novamente mais tarde',
+                                  style: TextStyle(
+                                    color: AppColors.cinza,
+                                    fontSize: 14,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                        }
+
+                        final avaliacoes = snapshot.data ?? [];
+
+                        if (avaliacoes.isEmpty) {
+                          return Container(
+                            padding: const EdgeInsets.all(40),
+                            decoration: BoxDecoration(
+                              color: AppColors.white,
+                              borderRadius: BorderRadius.circular(16),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.08),
+                                  blurRadius: 12,
+                                  offset: const Offset(0, 4),
+                                ),
+                              ],
+                            ),
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(Icons.swap_horiz,
+                                    size: 70,
+                                    color: AppColors.cinza.withOpacity(0.4)),
+                                const SizedBox(height: 20),
+                                Text(
+                                  'Nenhuma troca registrada ainda',
+                                  style: TextStyle(
+                                    color: AppColors.cinza,
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: 16,
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  'Quando você concluir trocas com outros usuários, elas aparecerão aqui.',
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                    color: AppColors.cinza.withOpacity(0.7),
+                                    fontSize: 14,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                        }
+
+                        return Column(
+                          children: avaliacoes.map((avaliacao) => 
+                            _AvaliacaoItem(avaliacao: avaliacao)
+                          ).toList(),
+                        );
+                      },
                     ),
-                  );
-                }
-
-                final avaliacoes = snapshot.data ?? [];
-
-                if (avaliacoes.isEmpty) {
-                  return Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          Icons.star_outline,
-                          size: 64,
-                          color: AppColors.cinza.withOpacity(0.5),
-                        ),
-                        SizedBox(height: 16),
-                        Text(
-                          'Nenhuma avaliação recebida',
-                          style: TextStyle(
-                            fontSize: 16,
-                            color: AppColors.cinza,
-                          ),
-                        ),
-                        SizedBox(height: 8),
-                        Text(
-                          'Suas avaliações aparecerão aqui',
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: AppColors.cinza.withOpacity(0.7),
-                          ),
-                        ),
-                      ],
-                    ),
-                  );
-                }
-
-                return ListView.builder(
-                  padding: EdgeInsets.all(16),
-                  itemCount: avaliacoes.length,
-                  itemBuilder: (context, index) {
-                    return _AvaliacaoItem(avaliacao: avaliacoes[index]);
-                  },
-                );
-              },
-            ),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _currentIndex,
-        onTap: (index) {
-          setState(() {
-            _currentIndex = index;
-          });
-        },
-        items: [
-          BottomNavigationBarItem(icon: Icon(Icons.search), label: 'Procurar'),
-          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Perfil'),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.swap_horiz),
-            label: 'Minhas Trocas',
+            ],
           ),
-        ],
-        selectedItemColor: AppColors.roxo,
-        unselectedItemColor: AppColors.cinza,
+        ),
       ),
     );
   }
@@ -145,7 +214,6 @@ class _TelaMinhasTrocasState extends State<TelaMinhasTrocas> {
 
 class _AvaliacaoItem extends StatefulWidget {
   final Avaliacao avaliacao;
-
   const _AvaliacaoItem({required this.avaliacao});
 
   @override
@@ -167,62 +235,62 @@ class _AvaliacaoItemState extends State<_AvaliacaoItem> {
         context,
         listen: false,
       );
-      final usuario = await usuarioController.buscarUsuarioPorId(
-        widget.avaliacao.usuarioAvaliadorId,
-      );
-
+      final usuario = await usuarioController
+          .buscarUsuarioPorId(widget.avaliacao.usuarioAvaliadorId);
       if (mounted) {
         setState(() {
           _usuarioAvaliador = usuario;
         });
       }
-    } catch (e) {
-      print('Erro ao carregar usuário avaliador: $e');
-    }
+    } catch (e) {}
   }
 
   String _formatarData(DateTime data) {
     final now = DateTime.now();
     final difference = now.difference(data);
-
-    if (difference.inDays == 0) {
-      return 'Hoje';
-    } else if (difference.inDays == 1) {
-      return 'Ontem';
-    } else if (difference.inDays < 7) {
-      return '${difference.inDays} dias atrás';
-    } else {
-      return '${data.day}/${data.month}/${data.year}';
-    }
+    if (difference.inDays == 0) return 'Hoje';
+    if (difference.inDays == 1) return 'Ontem';
+    if (difference.inDays < 7) return '${difference.inDays} dias atrás';
+    return '${data.day}/${data.month}/${data.year}';
   }
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      margin: EdgeInsets.only(bottom: 12),
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.08),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
       child: Padding(
-        padding: EdgeInsets.all(16),
+        padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
               children: [
                 CircleAvatar(
-                  radius: 20,
-                  backgroundColor: AppColors.roxo,
+                  radius: 24,
+                  backgroundColor: AppColors.roxo.withOpacity(0.15),
                   child: Text(
                     _usuarioAvaliador?.nomeCompleto.isNotEmpty == true
                         ? _usuarioAvaliador!.nomeCompleto[0].toUpperCase()
                         : '?',
                     style: TextStyle(
-                      color: AppColors.white,
+                      color: AppColors.roxo,
+                      fontSize: 18,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
                 ),
-                SizedBox(width: 12),
+                const SizedBox(width: 12),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -230,15 +298,18 @@ class _AvaliacaoItemState extends State<_AvaliacaoItem> {
                       Text(
                         _usuarioAvaliador?.nomeCompleto ?? 'Usuário',
                         style: TextStyle(
-                          fontWeight: FontWeight.bold,
+                          fontWeight: FontWeight.w700,
                           fontSize: 16,
                           color: AppColors.black,
                         ),
                       ),
-                      SizedBox(height: 4),
+                      const SizedBox(height: 2),
                       Text(
                         _formatarData(widget.avaliacao.dataAvaliacao),
-                        style: TextStyle(fontSize: 12, color: AppColors.cinza),
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: AppColors.cinza,
+                        ),
                       ),
                     ],
                   ),
@@ -247,8 +318,8 @@ class _AvaliacaoItemState extends State<_AvaliacaoItem> {
                   children: List.generate(5, (index) {
                     return Icon(
                       index < widget.avaliacao.estrelas
-                          ? Icons.star
-                          : Icons.star_border,
+                          ? Icons.star_rounded
+                          : Icons.star_border_rounded,
                       color: AppColors.roxo,
                       size: 20,
                     );
@@ -257,13 +328,13 @@ class _AvaliacaoItemState extends State<_AvaliacaoItem> {
               ],
             ),
             if (widget.avaliacao.comentario.isNotEmpty) ...[
-              SizedBox(height: 12),
+              const SizedBox(height: 14),
               Container(
                 width: double.infinity,
-                padding: EdgeInsets.all(12),
+                padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
                   color: AppColors.fundo,
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(10),
                 ),
                 child: Text(
                   widget.avaliacao.comentario,
