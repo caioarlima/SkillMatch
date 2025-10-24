@@ -44,6 +44,61 @@ class Validators {
     return null;
   }
 
+  static String? validarDataNascimentoFormatada(String? valor) {
+    if (valor == null || valor.isEmpty) {
+      return 'Por favor, insira sua data de nascimento.';
+    }
+
+    final partes = valor.split('/');
+    if (partes.length != 3) {
+      return 'Formato inválido. Use DD/MM/AAAA';
+    }
+
+    try {
+      final dia = int.parse(partes[0]);
+      final mes = int.parse(partes[1]);
+      final ano = int.parse(partes[2]);
+
+      final agora = DateTime.now();
+      final anoAtual = agora.year;
+
+      if (ano > anoAtual) {
+        return 'O ano não pode ser maior que $anoAtual';
+      }
+
+      if (mes < 1 || mes > 12) {
+        return 'Mês deve estar entre 01 e 12';
+      }
+
+      if (dia < 1 || dia > 31) {
+        return 'Dia deve estar entre 01 e 31';
+      }
+
+      if (mes == 2) {
+        final isBissexto = (ano % 4 == 0 && ano % 100 != 0) || (ano % 400 == 0);
+        if (dia > (isBissexto ? 29 : 28)) {
+          return 'Fevereiro tem no máximo ${isBissexto ? 29 : 28} dias';
+        }
+      } else if ([4, 6, 9, 11].contains(mes) && dia > 30) {
+        return 'Este mês tem apenas 30 dias';
+      }
+
+      final dataNasc = DateTime(ano, mes, dia);
+      if (dataNasc.isAfter(agora)) {
+        return 'Data de nascimento não pode ser futura';
+      }
+
+      final idade = agora.difference(dataNasc).inDays ~/ 365;
+      if (idade < 18) {
+        return 'Você deve ter pelo menos 18 anos para se cadastrar';
+      }
+
+      return null;
+    } catch (e) {
+      return 'Data inválida. Use o formato DD/MM/AAAA';
+    }
+  }
+
   static String? validarCampoObrigatorio(String? valor, String nomeCampo) {
     if (valor == null || valor.isEmpty) {
       return 'Por favor, insira $nomeCampo';

@@ -46,6 +46,8 @@ class _TelaCadastroState extends State<TelaCadastro> {
   bool _aceitouTermos = false;
   String? _erroCPF;
   bool _validandoCPF = false;
+  bool _senhaVisivel = false;
+  bool _confirmarSenhaVisivel = false;
 
   @override
   void dispose() {
@@ -58,6 +60,18 @@ class _TelaCadastroState extends State<TelaCadastro> {
     _controladorConfirmarSenha.dispose();
     _controladorDataNasc.dispose();
     super.dispose();
+  }
+
+  void _alternarVisibilidadeSenha() {
+    setState(() {
+      _senhaVisivel = !_senhaVisivel;
+    });
+  }
+
+  void _alternarVisibilidadeConfirmarSenha() {
+    setState(() {
+      _confirmarSenhaVisivel = !_confirmarSenhaVisivel;
+    });
   }
 
   Future<void> _selecionarData(BuildContext context) async {
@@ -88,8 +102,46 @@ class _TelaCadastroState extends State<TelaCadastro> {
       setState(() {
         _dataNascimento = dataSelecionada;
         _controladorDataNasc.text =
-            "${_dataNascimento!.day}/${_dataNascimento!.month}/${_dataNascimento!.year}";
+            "${_dataNascimento!.day.toString().padLeft(2, '0')}/${_dataNascimento!.month.toString().padLeft(2, '0')}/${_dataNascimento!.year}";
       });
+    }
+  }
+
+  void _aplicarMascaraData(String valor) {
+    final textoLimpo = valor.replaceAll(RegExp(r'[^\d]'), '');
+    
+    String textoFormatado = '';
+    
+    if (textoLimpo.length >= 1) {
+      textoFormatado = textoLimpo.substring(0, 1);
+    }
+    if (textoLimpo.length >= 2) {
+      textoFormatado = textoLimpo.substring(0, 2);
+    }
+    if (textoLimpo.length >= 3) {
+      textoFormatado = '${textoLimpo.substring(0, 2)}/${textoLimpo.substring(2, 3)}';
+    }
+    if (textoLimpo.length >= 4) {
+      textoFormatado = '${textoLimpo.substring(0, 2)}/${textoLimpo.substring(2, 4)}';
+    }
+    if (textoLimpo.length >= 5) {
+      textoFormatado = '${textoLimpo.substring(0, 2)}/${textoLimpo.substring(2, 4)}/${textoLimpo.substring(4, 5)}';
+    }
+    if (textoLimpo.length >= 6) {
+      textoFormatado = '${textoLimpo.substring(0, 2)}/${textoLimpo.substring(2, 4)}/${textoLimpo.substring(4, 6)}';
+    }
+    if (textoLimpo.length >= 7) {
+      textoFormatado = '${textoLimpo.substring(0, 2)}/${textoLimpo.substring(2, 4)}/${textoLimpo.substring(4, 7)}';
+    }
+    if (textoLimpo.length >= 8) {
+      textoFormatado = '${textoLimpo.substring(0, 2)}/${textoLimpo.substring(2, 4)}/${textoLimpo.substring(4, 8)}';
+    }
+
+    if (_controladorDataNasc.text != textoFormatado) {
+      _controladorDataNasc.value = TextEditingValue(
+        text: textoFormatado,
+        selection: TextSelection.collapsed(offset: textoFormatado.length),
+      );
     }
   }
 
@@ -134,22 +186,108 @@ class _TelaCadastroState extends State<TelaCadastro> {
         return AlertDialog(
           backgroundColor: AppColors.fundo,
           title: Text(
-            "Termos de Uso e Políticas de Privacidade",
+            "Termos de Uso e Política de Privacidade - SkillMatch",
             style: TextStyle(
               color: AppColors.roxo,
               fontWeight: FontWeight.bold,
+              fontSize: 18,
             ),
           ),
           content: SingleChildScrollView(
-            child: Text(
-              "📖 Termos de Uso\n\n1. Aceitação dos Termos\nAo criar uma conta e utilizar o aplicativo de troca de favores (\"Aplicativo\"), você concorda com estes Termos de Uso. Caso não concorde, não utilize o Aplicativo.\n\n2. Funcionamento do Aplicativo\nO Aplicativo permite que usuários solicitem e ofereçam ajuda em pequenas tarefas do dia a dia (ex.: trocar uma lâmpada, lavar um carro, levar algo ao mercado).\n\nOs favores são realizados de forma voluntária e sem garantia de qualidade.\n\nO Aplicativo não é intermediador de serviços profissionais pagos.\n\n3. Responsabilidades do Usuário\n\n• Fornecer informações verdadeiras no cadastro.\n• Cumprir os favores acordados com responsabilidade e respeito.\n• Não utilizar o Aplicativo para atividades ilegais, perigosas ou que envolvam menores sem supervisão adequada.\n\n4. Limitação de Responsabilidade\nO Aplicativo não se responsabiliza por danos, perdas ou prejuízos decorrentes das interações entre usuários. O uso é de inteira responsabilidade dos participantes.\n\n5. Suspensão e Encerramento\nO Aplicativo pode suspender ou excluir contas que descumprirem estes Termos ou utilizarem a plataforma de forma abusiva.\n\n6. Alterações\nOs Termos podem ser atualizados periodicamente. O uso contínuo do Aplicativo após mudanças significa concordância com a nova versão.\n\n---\n\n🔗 Política de Privacidade\n\n1. Coleta de Informações\nPodemos coletar dados pessoais fornecidos por você, como:\n\n• Nome, e-mail, telefone e foto de perfil.\n• Dados de uso do Aplicativo (ex.: favores solicitados e oferecidos).\n\n2. Uso das Informações\nAs informações são utilizadas para:\n\n• Criar e manter sua conta.\n• Conectar você a outros usuários do Aplicativo.\n• Melhorar a experiência e segurança da plataforma.\n\n3. Compartilhamento de Dados\nNão vendemos suas informações. Seus dados podem ser compartilhados apenas:\n\n• Com outros usuários (ex.: nome e contato para combinar favores).\n• Quando exigido por lei ou autoridades competentes.\n\n4. Armazenamento e Segurança\nSeus dados são armazenados em servidores seguros. Apesar dos esforços, não garantimos proteção absoluta contra acessos não autorizados.\n\n5. Direitos do Usuário\nVocê pode:\n\n• Solicitar a exclusão da sua conta.\n• Pedir a correção ou remoção de seus dados pessoais.\n\n6. Alterações\nA Política de Privacidade pode ser atualizada. O uso contínuo do Aplicativo significa concordância com as mudanças.",
-              style: TextStyle(color: AppColors.cinza),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  "📋 TERMO DE USO DO SISTEMA SKILLMATCH",
+                  style: TextStyle(
+                    color: AppColors.roxo,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                  ),
+                ),
+                SizedBox(height: 10),
+                Text(
+                  "Este Termo de Uso é um acordo legal entre você e os desenvolvedores do Projeto SkillMatch, "
+                  "um sistema criado para conectar pessoas que desejam trocar habilidades e serviços de forma colaborativa, "
+                  "sem envolvimento financeiro direto, promovendo aprendizado e networking.\n\n"
+                  "Ao utilizar o SkillMatch, você concorda com:\n\n"
+                  "• Coleta de dados: nome, e-mail, habilidades, histórico de interações e dados técnicos\n"
+                  "• Finalidade: criação de perfil, sistema de match, comunicação via chat, segurança\n"
+                  "• Vedações: conteúdo ilegal, fraude, assédio, violação de direitos autorais\n"
+                  "• Proteção: criptografia, controle de acesso, monitoramento de segurança\n"
+                  "• Direitos: exclusão de conta, revogação de consentimento, acesso aos dados\n\n",
+                  style: TextStyle(color: AppColors.cinza, fontSize: 14),
+                ),
+                
+                Text(
+                  "🔒 TERMO DE CONSENTIMENTO PARA TRATAMENTO DE DADOS",
+                  style: TextStyle(
+                    color: AppColors.roxo,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                  ),
+                ),
+                SizedBox(height: 10),
+                Text(
+                  "Você autoriza expressamente o tratamento de seus dados pessoais pelo SkillMatch, "
+                  "em conformidade com a LGPD (Lei nº 13.709/2018) e normas internacionais de segurança.\n\n"
+                  "Dados autorizados:\n"
+                  "• Nome completo e e-mail para identificação\n"
+                  "• Foto de perfil (opcional) para personalização\n"
+                  "• Habilidades e áreas de interesse para match\n"
+                  "• Mensagens e interações para histórico\n"
+                  "• Dados técnicos (IP, dispositivo) para segurança\n\n"
+                  "Finalidades:\n"
+                  "• Gerenciar cadastros e perfis\n"
+                  "• Realizar match entre habilidades complementares\n"
+                  "• Permitir comunicação entre usuários\n"
+                  "• Garantir segurança e prevenção de fraudes\n"
+                  "• Melhorar experiência do usuário\n\n",
+                  style: TextStyle(color: AppColors.cinza, fontSize: 14),
+                ),
+                
+                Text(
+                  "🛡️ POLÍTICA DE PRIVACIDADE",
+                  style: TextStyle(
+                    color: AppColors.roxo,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                  ),
+                ),
+                SizedBox(height: 10),
+                Text(
+                  "O SkillMatch valoriza sua privacidade e protege seus dados com:\n\n"
+                  "Medidas de segurança:\n"
+                  "• Criptografia de dados e comunicações\n"
+                  "• Autenticação segura e controle de acesso\n"
+                  "• Monitoramento contínuo e backups\n"
+                  "• Conformidade com normas ISO 27001, 27701 e 29100\n\n"
+                  "Seus direitos:\n"
+                  "• Acessar, corrigir e excluir seus dados\n"
+                  "• Revogar consentimento a qualquer momento\n"
+                  "• Solicitar portabilidade de dados\n"
+                  "• Ser informado sobre uso dos dados\n\n"
+                  "Dados de crianças e adolescentes:\n"
+                  "• Crianças menores de 12 anos: consentimento dos responsáveis\n"
+                  "• Adolescentes (12-18 anos): tratamento no melhor interesse\n"
+                  "• Medidas reforçadas de segurança aplicadas\n\n"
+                  "Canais de contato:\n"
+                  "• E-mail: skillmatch2025@gmail.com\n"
+                  "• Telefone: (31) 99999-9999\n"
+                  "• DPO: Caio Aguilar - caioaguilar.skillmatch@gmail.com\n\n"
+                  "Foro: Comarca de Belo Horizonte/MG",
+                  style: TextStyle(color: AppColors.cinza, fontSize: 14),
+                ),
+              ],
             ),
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: Text("Cancelar", style: TextStyle(color: AppColors.cinza)),
+              child: Text(
+                "Não Aceito",
+                style: TextStyle(color: AppColors.cinza, fontWeight: FontWeight.bold),
+              ),
             ),
             TextButton(
               onPressed: () {
@@ -159,7 +297,7 @@ class _TelaCadastroState extends State<TelaCadastro> {
                 });
               },
               child: Text(
-                "Aceito",
+                "Aceito os Termos",
                 style: TextStyle(
                   color: AppColors.roxo,
                   fontWeight: FontWeight.bold,
@@ -224,8 +362,7 @@ class _TelaCadastroState extends State<TelaCadastro> {
       }
 
       final String senhaDigitada = _controladorSenhaCadastro.text.trim();
-      final String confirmarSenhaDigitada = _controladorConfirmarSenha.text
-          .trim();
+      final String confirmarSenhaDigitada = _controladorConfirmarSenha.text.trim();
 
       if (senhaDigitada != confirmarSenhaDigitada) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -309,17 +446,6 @@ class _TelaCadastroState extends State<TelaCadastro> {
       context,
       MaterialPageRoute(builder: (context) => const TelaLogin()),
     );
-  }
-
-  String? _validarDataNascimento() {
-    if (_dataNascimento == null) {
-      return 'Por favor, selecione sua data de nascimento.';
-    }
-    final idade = Validators.calcularIdade(_dataNascimento!);
-    if (idade < 18) {
-      return 'Você deve ter pelo menos 18 anos para se cadastrar.';
-    }
-    return null;
   }
 
   @override
@@ -410,12 +536,20 @@ class _TelaCadastroState extends State<TelaCadastro> {
                     TextFormField(
                       controller: _controladorDataNasc,
                       decoration: _decoracao(
-                        "Data de Nascimento",
-                        icone: Icons.calendar_today,
+                        "Data de Nascimento (DD/MM/AAAA)",
+                      ).copyWith(
+                        suffixIcon: IconButton(
+                          icon: Icon(Icons.calendar_today, color: AppColors.roxo),
+                          onPressed: () => _selecionarData(context),
+                        ),
                       ),
-                      readOnly: true,
-                      onTap: () => _selecionarData(context),
-                      validator: (valor) => _validarDataNascimento(),
+                      keyboardType: TextInputType.number,
+                      inputFormatters: [
+                        FilteringTextInputFormatter.digitsOnly,
+                        LengthLimitingTextInputFormatter(10),
+                      ],
+                      onChanged: _aplicarMascaraData,
+                      validator: (valor) => Validators.validarDataNascimentoFormatada(valor),
                     ),
                     const SizedBox(height: 8),
                     TextFormField(
@@ -464,16 +598,32 @@ class _TelaCadastroState extends State<TelaCadastro> {
                     const SizedBox(height: 8),
                     TextFormField(
                       controller: _controladorSenhaCadastro,
-                      decoration: _decoracao("Senha"),
-                      obscureText: true,
+                      decoration: _decoracao("Senha").copyWith(
+                        suffixIcon: IconButton(
+                          icon: Icon(
+                            _senhaVisivel ? Icons.visibility : Icons.visibility_off,
+                            color: AppColors.roxo,
+                          ),
+                          onPressed: _alternarVisibilidadeSenha,
+                        ),
+                      ),
+                      obscureText: !_senhaVisivel,
                       validator: (valor) =>
                           Validators.validarSenha(valor, _tamanhoMinimoSenha),
                     ),
                     const SizedBox(height: 8),
                     TextFormField(
                       controller: _controladorConfirmarSenha,
-                      decoration: _decoracao("Confirmar Senha"),
-                      obscureText: true,
+                      decoration: _decoracao("Confirmar Senha").copyWith(
+                        suffixIcon: IconButton(
+                          icon: Icon(
+                            _confirmarSenhaVisivel ? Icons.visibility : Icons.visibility_off,
+                            color: AppColors.roxo,
+                          ),
+                          onPressed: _alternarVisibilidadeConfirmarSenha,
+                        ),
+                      ),
+                      obscureText: !_confirmarSenhaVisivel,
                       validator: (valor) =>
                           Validators.validarSenha(valor, _tamanhoMinimoSenha),
                     ),
