@@ -43,7 +43,11 @@ class _TelaChatState extends State<TelaChat> {
 
     if (user != null) {
       final mensagensNaoLidas = chatController.mensagens
-          .where((msg) => msg.senderId != user.uid && !msg.visualizadaPor.contains(user.uid))
+          .where(
+            (msg) =>
+                msg.senderId != user.uid &&
+                !msg.visualizadaPor.contains(user.uid),
+          )
           .map((msg) => msg.mensagemId)
           .toList();
 
@@ -59,8 +63,13 @@ class _TelaChatState extends State<TelaChat> {
 
   Future<void> _carregarDadosUsuario() async {
     try {
-      final usuarioController = Provider.of<UsuarioController>(context, listen: false);
-      final usuario = await usuarioController.buscarUsuarioPorId(widget.outroUsuario);
+      final usuarioController = Provider.of<UsuarioController>(
+        context,
+        listen: false,
+      );
+      final usuario = await usuarioController.buscarUsuarioPorId(
+        widget.outroUsuario,
+      );
 
       if (usuario != null && mounted) {
         setState(() {
@@ -98,8 +107,14 @@ class _TelaChatState extends State<TelaChat> {
   void _mostrarDialogoAvaliacao(BuildContext context) {
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       try {
-        final authController = Provider.of<AuthController>(context, listen: false);
-        final avaliacaoController = Provider.of<AvaliacaoController>(context, listen: false);
+        final authController = Provider.of<AuthController>(
+          context,
+          listen: false,
+        );
+        final avaliacaoController = Provider.of<AvaliacaoController>(
+          context,
+          listen: false,
+        );
         final usuarioLogado = authController.currentUser;
 
         if (usuarioLogado != null) {
@@ -293,15 +308,28 @@ class _TelaChatState extends State<TelaChat> {
     required String comentario,
   }) async {
     try {
-      final authController = Provider.of<AuthController>(context, listen: false);
-      final avaliacaoController = Provider.of<AvaliacaoController>(context, listen: false);
-      final usuarioController = Provider.of<UsuarioController>(context, listen: false);
+      final authController = Provider.of<AuthController>(
+        context,
+        listen: false,
+      );
+      final avaliacaoController = Provider.of<AvaliacaoController>(
+        context,
+        listen: false,
+      );
+      final usuarioController = Provider.of<UsuarioController>(
+        context,
+        listen: false,
+      );
 
       final usuarioLogado = authController.currentUser;
       if (usuarioLogado == null) return;
 
-      final avaliador = await usuarioController.buscarUsuarioPorId(usuarioLogado.uid);
-      final avaliado = await usuarioController.buscarUsuarioPorId(widget.outroUsuario);
+      final avaliador = await usuarioController.buscarUsuarioPorId(
+        usuarioLogado.uid,
+      );
+      final avaliado = await usuarioController.buscarUsuarioPorId(
+        widget.outroUsuario,
+      );
 
       if (avaliador != null && avaliado != null) {
         final sucesso = await avaliacaoController.salvarAvaliacao(
@@ -339,7 +367,10 @@ class _TelaChatState extends State<TelaChat> {
   Future<void> _encerrarChat() async {
     try {
       final firestore = FirebaseFirestore.instance;
-      final authController = Provider.of<AuthController>(context, listen: false);
+      final authController = Provider.of<AuthController>(
+        context,
+        listen: false,
+      );
       final usuarioLogado = authController.currentUser;
 
       if (usuarioLogado == null) return;
@@ -384,14 +415,24 @@ class _TelaChatState extends State<TelaChat> {
 
   Future<void> _enviarDenuncia(String motivo) async {
     try {
-      final authController = Provider.of<AuthController>(context, listen: false);
-      final usuarioController = Provider.of<UsuarioController>(context, listen: false);
+      final authController = Provider.of<AuthController>(
+        context,
+        listen: false,
+      );
+      final usuarioController = Provider.of<UsuarioController>(
+        context,
+        listen: false,
+      );
 
       final usuarioLogado = authController.currentUser;
       if (usuarioLogado == null) return;
 
-      final denunciante = await usuarioController.buscarUsuarioPorId(usuarioLogado.uid);
-      final denunciado = await usuarioController.buscarUsuarioPorId(widget.outroUsuario);
+      final denunciante = await usuarioController.buscarUsuarioPorId(
+        usuarioLogado.uid,
+      );
+      final denunciado = await usuarioController.buscarUsuarioPorId(
+        widget.outroUsuario,
+      );
 
       if (denunciante != null && denunciado != null) {
         await usuarioController.reportarUsuario(

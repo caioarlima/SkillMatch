@@ -18,12 +18,19 @@ class _TelaLoginState extends State<TelaLogin> {
   final TextEditingController _controladorEmail = TextEditingController();
   final TextEditingController _controladorSenha = TextEditingController();
   final _chaveFormulario = GlobalKey<FormState>();
+  bool _senhaVisivel = false;
 
   @override
   void dispose() {
     _controladorEmail.dispose();
     _controladorSenha.dispose();
     super.dispose();
+  }
+
+  void _alternarVisibilidadeSenha() {
+    setState(() {
+      _senhaVisivel = !_senhaVisivel;
+    });
   }
 
   Future<void> _fazerLogin(
@@ -101,7 +108,7 @@ class _TelaLoginState extends State<TelaLogin> {
                 const SizedBox(height: 10),
                 TextFormField(
                   controller: _controladorSenha,
-                  obscureText: true,
+                  obscureText: !_senhaVisivel,
                   decoration: InputDecoration(
                     hintText: "Senha",
                     hintStyle: TextStyle(color: AppColors.cinza),
@@ -113,6 +120,13 @@ class _TelaLoginState extends State<TelaLogin> {
                     contentPadding: const EdgeInsets.symmetric(
                       horizontal: 16.0,
                       vertical: 12.0,
+                    ),
+                    suffixIcon: IconButton(
+                      icon: Icon(
+                        _senhaVisivel ? Icons.visibility : Icons.visibility_off,
+                        color: AppColors.roxo,
+                      ),
+                      onPressed: _alternarVisibilidadeSenha,
                     ),
                   ),
                   validator: (valor) => Validators.validarSenha(valor, 6),

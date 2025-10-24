@@ -238,7 +238,6 @@ class _ItemConversa extends StatelessWidget {
 
   Widget _buildUserAvatarWithFallback(String outroUsuarioId) {
     return FutureBuilder<Usuario?>(
-      // ⭐️ CORREÇÃO DO NOME DO MÉTODO AQUI
       future: usuarioController.buscarUsuarioPorId(outroUsuarioId),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
@@ -361,7 +360,6 @@ class _ItemConversa extends StatelessWidget {
           ],
         ),
         title: FutureBuilder<Usuario?>(
-          // ⭐️ CORREÇÃO DO NOME DO MÉTODO AQUI
           future: usuarioController.buscarUsuarioPorId(outroUsuarioId),
           builder: (context, snapshot) {
             final nome = snapshot.data?.nomeCompleto ?? outroUsuarioNomeDoChat;

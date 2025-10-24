@@ -1,16 +1,15 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../Model/Mensagem.dart';
 import '../Model/Chat.dart';
-import 'usuario_repository.dart'; // Mantido, pois é usado para enriquecer mensagens
+import 'usuario_repository.dart';
 
 class MensagemRepository {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  final UsuarioRepository _usuarioRepository; // Mantido, necessário para buscarMensagensChat
+  final UsuarioRepository _usuarioRepository;
 
-  MensagemRepository(this._usuarioRepository); // Mantido
+  MensagemRepository(this._usuarioRepository);
 
   Future<List<Chat>> buscarChatsUsuario(String userId) async {
-    // ... (código existente, permanece o mesmo) ...
     try {
       final query = await _firestore
           .collection('chats')
@@ -28,7 +27,6 @@ class MensagemRepository {
   }
 
   Future<List<Mensagem>> buscarMensagensChat(String chatId) async {
-    // ... (código corrigido na interação anterior, permanece o mesmo) ...
     try {
       final query = await _firestore
           .collection('chats')
@@ -37,14 +35,17 @@ class MensagemRepository {
           .orderBy('timestamp', descending: false)
           .get();
 
-      return await Future.wait(query.docs.map((doc) async {
-        final mensagem = Mensagem.fromMap(doc.id, doc.data());
+      return await Future.wait(
+        query.docs.map((doc) async {
+          final mensagem = Mensagem.fromMap(doc.id, doc.data());
 
-        // Lógica de enriquecimento que corrigimos antes
-        final remetente = await _usuarioRepository.buscarUsuarioPorId(mensagem.senderId);
+          final remetente = await _usuarioRepository.buscarUsuarioPorId(
+            mensagem.senderId,
+          );
 
-        return mensagem.copyWith(remetente: remetente);
-      }).toList());
+          return mensagem.copyWith(remetente: remetente);
+        }).toList(),
+      );
     } catch (e) {
       print('Erro ao buscar mensagens: $e');
       return [];
@@ -56,7 +57,6 @@ class MensagemRepository {
     String texto,
     String senderId,
   ) async {
-    // ... (código existente, permanece o mesmo) ...
     try {
       final chatDoc = await _firestore.collection('chats').doc(chatId).get();
 
@@ -106,7 +106,6 @@ class MensagemRepository {
       final chatDoc = await _firestore.collection('chats').doc(chatId).get();
 
       if (!chatDoc.exists) {
-        // ⭐️ CORREÇÃO AQUI: Garante que o valor da foto não é nulo/vazio ao salvar
         final String foto1 = user1Foto.isEmpty ? 'NO_FOTO_URL' : user1Foto;
         final String foto2 = user2Foto.isEmpty ? 'NO_FOTO_URL' : user2Foto;
 
@@ -115,7 +114,7 @@ class MensagemRepository {
           'ultimaMensagem': '',
           'timestamp': FieldValue.serverTimestamp(),
           'usuariosInfo': {user1Id: user1Nome, user2Id: user2Nome},
-          'usuariosFotos': {user1Id: foto1, user2Id: foto2}, // Usa os valores garantidos
+          'usuariosFotos': {user1Id: foto1, user2Id: foto2},
         };
 
         await _firestore.collection('chats').doc(chatId).set(chat);
@@ -146,7 +145,6 @@ class MensagemRepository {
     try {
       final chatDoc = await _firestore.collection('chats').doc(chatId).get();
 
-      // ⭐️ CORREÇÃO AQUI: Garante que o valor da foto não é nulo/vazio ao salvar
       final String foto1 = user1Foto.isEmpty ? 'NO_FOTO_URL' : user1Foto;
       final String foto2 = user2Foto.isEmpty ? 'NO_FOTO_URL' : user2Foto;
 
@@ -156,12 +154,11 @@ class MensagemRepository {
           'ultimaMensagem': '',
           'timestamp': FieldValue.serverTimestamp(),
           'usuariosInfo': {user1Id: user1Nome, user2Id: user2Nome},
-          'usuariosFotos': {user1Id: foto1, user2Id: foto2}, // Usa os valores garantidos
+          'usuariosFotos': {user1Id: foto1, user2Id: foto2},
         };
         await _firestore.collection('chats').doc(chatId).set(chat);
         print('Chat criado via verificação: $chatId');
       } else {
-        // ⭐️ CORREÇÃO AQUI: Atualiza as fotos (sempre bom garantir a foto mais recente)
         await _firestore.collection('chats').doc(chatId).update({
           'usuariosFotos': {user1Id: foto1, user2Id: foto2},
         });
@@ -178,7 +175,6 @@ class MensagemRepository {
     String userId,
     List<String> mensagemIds,
   ) async {
-    // ... (código existente, permanece o mesmo) ...
     try {
       final batch = _firestore.batch();
 
@@ -204,7 +200,6 @@ class MensagemRepository {
   }
 
   Future<int> contarMensagensNaoLidas(String chatId, String userId) async {
-    // ... (código existente, permanece o mesmo) ...
     try {
       final query = await _firestore
           .collection('chats')

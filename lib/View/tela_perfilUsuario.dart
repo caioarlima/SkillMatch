@@ -31,8 +31,12 @@ class _TelaPerfilUsuarioState extends State<TelaPerfilUsuario> {
 
   Future<void> _carregarDadosUsuario() async {
     try {
-      final media = await _avaliacaoController.getMediaAvaliacoes(widget.usuario.id!);
-      final trocas = await _chatRepository.getTotalTrocasUsuario(widget.usuario.id!);
+      final media = await _avaliacaoController.getMediaAvaliacoes(
+        widget.usuario.id!,
+      );
+      final trocas = await _chatRepository.getTotalTrocasUsuario(
+        widget.usuario.id!,
+      );
 
       setState(() {
         _mediaAvaliacoes = media;
@@ -70,10 +74,7 @@ class _TelaPerfilUsuarioState extends State<TelaPerfilUsuario> {
     if (usuario.fotoUrl != null && usuario.fotoUrl!.isNotEmpty) {
       try {
         final bytes = base64Decode(usuario.fotoUrl!);
-        return CircleAvatar(
-          radius: 40,
-          backgroundImage: MemoryImage(bytes),
-        );
+        return CircleAvatar(radius: 40, backgroundImage: MemoryImage(bytes));
       } catch (e) {
         print("Erro ao decodificar imagem Base64: $e");
       }
@@ -167,130 +168,168 @@ class _TelaPerfilUsuarioState extends State<TelaPerfilUsuario> {
     );
   }
 
-Future<void> _launchURL(String url) async {
-  try {
-    print('🔗 Tentando abrir URL: $url');
-    
-    String formattedUrl = url;
-    if (!url.startsWith('http://') && !url.startsWith('https://')) {
-      formattedUrl = 'https://$url';
-      print('🔗 URL formatada: $formattedUrl');
-    }
-    
-    final Uri uri = Uri.parse(formattedUrl);
-    print('🔗 URI criada: $uri');
-    
-    bool canLaunch = await canLaunchUrl(uri);
-    print('🔗 canLaunchUrl retornou: $canLaunch');
-    
-    if (canLaunch) {
-      print('🔗 Chamando launchUrl...');
-      await launchUrl(
-        uri,
-        mode: LaunchMode.externalApplication,
-      );
-      print('🔗 launchUrl executado com sucesso');
-    } else {
-      print('❌ canLaunchUrl retornou false');
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Não foi possível abrir o link'))
-        );
+  Future<void> _launchURL(String url) async {
+    try {
+      String cleanedUrl = url.trim();
+      
+      if (cleanedUrl.isEmpty) {
+        _showErrorSnackBar('URL inválida ou vazia');
+        return;
       }
+
+      if (!cleanedUrl.startsWith('http://') && !cleanedUrl.startsWith('https://')) {
+        cleanedUrl = 'https://$cleanedUrl';
+      }
+
+      final uri = Uri.parse(cleanedUrl);
+
+      if (await canLaunchUrl(uri)) {
+        await launchUrl(uri, mode: LaunchMode.externalApplication);
+      } else {
+        _showErrorSnackBar('Não foi possível abrir o link');
+      }
+    } catch (e) {
+      _showErrorSnackBar('Erro ao abrir o link');
     }
-  } catch (e) {
-    print('❌ ERRO no _launchURL: $e');
-    print('❌ StackTrace: ${e.toString()}');
+  }
+
+  void _showErrorSnackBar(String message) {
     if (context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Erro ao abrir o link: $e'))
+        SnackBar(
+          content: Text(message),
+          backgroundColor: Colors.red,
+          duration: Duration(seconds: 3),
+        ),
       );
     }
   }
-}
 
-Widget _buildProjetoCard(Projeto projeto) {
-  print('🃏 Construindo card do projeto: ${projeto.titulo}');
-  print('🃏 Link do projeto: ${projeto.link}');
-  
-  return Card(
-    elevation: 2,
-    margin: EdgeInsets.symmetric(vertical: 8),
-    child: Padding(
-      padding: const EdgeInsets.all(12),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            projeto.titulo,
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: AppColors.roxo,
-            ),
-          ),
-          SizedBox(height: 8),
-          Text(
-            projeto.descricao,
-            style: TextStyle(
-              fontSize: 14,
-              color: AppColors.black,
-            ),
-          ),
-          SizedBox(height: 8),
-          
-          if (projeto.imagemUrl != null && projeto.imagemUrl!.isNotEmpty)
-            Container(
-              height: 150,
-              width: double.infinity,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(8),
-                image: DecorationImage(
-                  image: NetworkImage(projeto.imagemUrl!),
-                  fit: BoxFit.cover,
-                ),
+  Widget _buildProjetoCard(Projeto projeto) {
+    bool hasValidLink = projeto.link != null && 
+                        projeto.link!.isNotEmpty && 
+                        (projeto.link!.startsWith('http://') || 
+                         projeto.link!.startsWith('https://'));
+
+    return Card(
+      elevation: 2,
+      margin: EdgeInsets.symmetric(vertical: 8),
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              projeto.titulo,
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: AppColors.roxo,
               ),
             ),
-          
-          SizedBox(height: 8),
-          
-          if (projeto.link != null && projeto.link!.isNotEmpty)
-            InkWell(
-              onTap: () {
-                print('👆 Usuário clicou no link: ${projeto.link}');
-                _launchURL(projeto.link!);
-              },
-              child: Container(
-                padding: EdgeInsets.all(8),
+            SizedBox(height: 8),
+            Text(
+              projeto.descricao,
+              style: TextStyle(fontSize: 14, color: AppColors.black),
+            ),
+            SizedBox(height: 8),
+
+            if (projeto.imagemUrl != null && projeto.imagemUrl!.isNotEmpty)
+              Container(
+                height: 150,
+                width: double.infinity,
                 decoration: BoxDecoration(
-                  color: AppColors.roxo.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(8),
+                  image: DecorationImage(
+                    image: NetworkImage(projeto.imagemUrl!),
+                    fit: BoxFit.cover,
+                  ),
+                ),
+              ),
+
+            SizedBox(height: 8),
+
+            if (hasValidLink)
+              Container(
+                decoration: BoxDecoration(
+                  color: AppColors.roxo.withOpacity(0.05),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: AppColors.roxo.withOpacity(0.3)),
+                ),
+                child: Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    onTap: () {
+                      _launchURL(projeto.link!);
+                    },
+                    borderRadius: BorderRadius.circular(8),
+                    child: Container(
+                      padding: EdgeInsets.all(12),
+                      width: double.infinity,
+                      child: Row(
+                        children: [
+                          Icon(Icons.link, size: 20, color: AppColors.roxo),
+                          SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Ver Projeto Online',
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w600,
+                                    color: AppColors.roxo,
+                                  ),
+                                ),
+                                SizedBox(height: 2),
+                                Text(
+                                  projeto.link!,
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: AppColors.cinza,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                  maxLines: 1,
+                                ),
+                              ],
+                            ),
+                          ),
+                          Icon(Icons.open_in_new, size: 16, color: AppColors.roxo),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              )
+            else if (projeto.link != null && projeto.link!.isNotEmpty)
+              Container(
+                padding: EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.grey.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Row(
-                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(Icons.link, size: 16, color: AppColors.roxo),
-                    SizedBox(width: 8),
+                    Icon(Icons.warning, size: 20, color: Colors.orange),
+                    SizedBox(width: 12),
                     Expanded(
                       child: Text(
-                        projeto.link!,
+                        'Link inválido ou formato incorreto',
                         style: TextStyle(
                           fontSize: 12,
-                          color: AppColors.roxo,
-                          decoration: TextDecoration.underline,
+                          color: Colors.orange,
                         ),
-                        overflow: TextOverflow.ellipsis,
                       ),
                     ),
                   ],
                 ),
               ),
-            ),
-        ],
+          ],
+        ),
       ),
-    ),
-  );
-}
+    );
+  }
 
   void _mostrarProjetos() {
     showDialog(
@@ -313,7 +352,7 @@ Widget _buildProjetoCard(Projeto projeto) {
                 ),
               ),
               const SizedBox(height: 16),
-              
+
               if (widget.usuario.projetos.isNotEmpty) ...[
                 Container(
                   height: 400,
@@ -330,7 +369,11 @@ Widget _buildProjetoCard(Projeto projeto) {
                 Center(
                   child: Column(
                     children: [
-                      Icon(Icons.work_outline, size: 64, color: AppColors.cinza),
+                      Icon(
+                        Icons.work_outline,
+                        size: 64,
+                        color: AppColors.cinza,
+                      ),
                       SizedBox(height: 16),
                       Text(
                         'Nenhum projeto cadastrado',
@@ -340,7 +383,7 @@ Widget _buildProjetoCard(Projeto projeto) {
                   ),
                 ),
               ],
-              
+
               const SizedBox(height: 20),
               Center(
                 child: Container(
@@ -422,9 +465,9 @@ Widget _buildProjetoCard(Projeto projeto) {
                       ],
                     ),
                   ),
-                  
+
                   SizedBox(height: 16),
-                  
+
                   Material(
                     elevation: 4,
                     borderRadius: BorderRadius.circular(12),
@@ -454,9 +497,9 @@ Widget _buildProjetoCard(Projeto projeto) {
                       ),
                     ),
                   ),
-                  
+
                   SizedBox(height: 24),
-                  
+
                   Material(
                     elevation: 4,
                     borderRadius: BorderRadius.circular(12),
@@ -498,9 +541,9 @@ Widget _buildProjetoCard(Projeto projeto) {
                       ),
                     ),
                   ),
-                  
+
                   SizedBox(height: 16),
-                  
+
                   Material(
                     elevation: 4,
                     borderRadius: BorderRadius.circular(12),

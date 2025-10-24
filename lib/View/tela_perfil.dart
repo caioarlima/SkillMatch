@@ -32,8 +32,7 @@ class _TelaPerfilState extends State<TelaPerfil> {
   final TextEditingController _nomeController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _cpfController = TextEditingController();
-  final TextEditingController _dataNascimentoController =
-      TextEditingController();
+  final TextEditingController _dataNascimentoController = TextEditingController();
   final TextEditingController _generoController = TextEditingController();
   final TextEditingController _cidadeController = TextEditingController();
   final TextEditingController _bioController = TextEditingController();
@@ -126,13 +125,9 @@ class _TelaPerfilState extends State<TelaPerfil> {
         _editando = false;
       });
 
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Perfil atualizado com sucesso!')));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Perfil atualizado com sucesso!')));
     } catch (e) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Erro ao atualizar perfil: $e')));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Erro ao atualizar perfil: $e')));
     }
   }
 
@@ -231,7 +226,6 @@ class _TelaPerfilState extends State<TelaPerfil> {
                       ),
                     ),
                     const SizedBox(height: 24),
-
                     Container(
                       padding: const EdgeInsets.all(20),
                       decoration: BoxDecoration(
@@ -294,7 +288,6 @@ class _TelaPerfilState extends State<TelaPerfil> {
                       ),
                     ),
                     const SizedBox(height: 24),
-
                     Material(
                       elevation: 4,
                       borderRadius: BorderRadius.circular(12),
@@ -360,9 +353,7 @@ class _TelaPerfilState extends State<TelaPerfil> {
                         ),
                       ),
                     ),
-
                     const SizedBox(height: 16),
-
                     Material(
                       elevation: 4,
                       borderRadius: BorderRadius.circular(12),
@@ -403,9 +394,7 @@ class _TelaPerfilState extends State<TelaPerfil> {
                         ),
                       ),
                     ),
-
                     const SizedBox(height: 16),
-
                     Material(
                       elevation: 4,
                       borderRadius: BorderRadius.circular(12),
@@ -435,9 +424,7 @@ class _TelaPerfilState extends State<TelaPerfil> {
                         ),
                       ),
                     ),
-
                     const SizedBox(height: 16),
-
                     Container(
                       width: double.infinity,
                       height: 50,
@@ -446,9 +433,7 @@ class _TelaPerfilState extends State<TelaPerfil> {
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: ElevatedButton(
-                        onPressed: _editando
-                            ? _salvarAlteracoes
-                            : _alternarEdicao,
+                        onPressed: _editando ? _salvarAlteracoes : _alternarEdicao,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.transparent,
                           elevation: 0,
@@ -466,7 +451,6 @@ class _TelaPerfilState extends State<TelaPerfil> {
                         ),
                       ),
                     ),
-
                     if (_editando) ...[
                       const SizedBox(height: 8),
                       Container(
@@ -625,6 +609,13 @@ class _DialogProjetosState extends State<DialogProjetos> {
   final TextEditingController _descricaoController = TextEditingController();
   final TextEditingController _linkController = TextEditingController();
   final TextEditingController _imagemController = TextEditingController();
+  List<Projeto> _projetos = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _projetos = List.from(widget.usuario.projetos);
+  }
 
   void _adicionarProjeto() {
     if (_tituloController.text.isEmpty || _descricaoController.text.isEmpty) {
@@ -648,23 +639,30 @@ class _DialogProjetosState extends State<DialogProjetos> {
       titulo: _tituloController.text,
       descricao: _descricaoController.text,
       link: linkFormatado,
-      imagemUrl: _imagemController.text.isNotEmpty
-          ? _imagemController.text
-          : null,
+      imagemUrl: _imagemController.text.isNotEmpty ? _imagemController.text : null,
       dataCriacao: DateTime.now(),
     );
 
     widget.usuarioController.adicionarProjeto(widget.usuario.id!, novoProjeto);
+    
+    setState(() {
+      _projetos.add(novoProjeto);
+    });
+    
     widget.onProjetoAdicionado();
     _tituloController.clear();
     _descricaoController.clear();
     _linkController.clear();
     _imagemController.clear();
-    Navigator.pop(context);
   }
 
   void _removerProjeto(String projetoId) {
     widget.usuarioController.removerProjeto(widget.usuario.id!, projetoId);
+    
+    setState(() {
+      _projetos.removeWhere((projeto) => projeto.id == projetoId);
+    });
+    
     widget.onProjetoAdicionado();
   }
 
@@ -689,7 +687,7 @@ class _DialogProjetosState extends State<DialogProjetos> {
                 ),
               ),
               const SizedBox(height: 16),
-              if (widget.usuario.projetos.isNotEmpty) ...[
+              if (_projetos.isNotEmpty) ...[
                 Text(
                   'Projetos existentes:',
                   style: TextStyle(
@@ -699,7 +697,7 @@ class _DialogProjetosState extends State<DialogProjetos> {
                   ),
                 ),
                 const SizedBox(height: 8),
-                ...widget.usuario.projetos.map(
+                ..._projetos.map(
                   (projeto) => Card(
                     child: ListTile(
                       title: Text(

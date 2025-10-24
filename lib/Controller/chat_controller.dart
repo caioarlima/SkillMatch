@@ -10,7 +10,8 @@ class ChatController with ChangeNotifier {
   final MensagemRepository _mensagemRepository;
   final ChatRepository _chatRepository = ChatRepository();
 
-  ChatController() : _mensagemRepository = MensagemRepository(UsuarioRepository());
+  ChatController()
+    : _mensagemRepository = MensagemRepository(UsuarioRepository());
 
   List<Chat> _chats = [];
   List<Mensagem> _mensagens = [];

@@ -19,7 +19,8 @@ class TelaProcuraTrocas extends StatefulWidget {
 }
 
 class _TelaProcuraTrocasState extends State<TelaProcuraTrocas> {
-  final TextEditingController _controladorBuscarHabilidades = TextEditingController();
+  final TextEditingController _controladorBuscarHabilidades =
+      TextEditingController();
   final FirebaseAuth _auth = FirebaseAuth.instance;
   String _searchQuery = "";
   String? _currentUserId;
@@ -60,13 +61,17 @@ class _TelaProcuraTrocasState extends State<TelaProcuraTrocas> {
     if (_currentUserId == null) return;
 
     try {
-      final usuarioController = Provider.of<UsuarioController>(context, listen: false);
-      final usuario = await usuarioController.buscarUsuarioPorId(_currentUserId!);
+      final usuarioController = Provider.of<UsuarioController>(
+        context,
+        listen: false,
+      );
+      final usuario = await usuarioController.buscarUsuarioPorId(
+        _currentUserId!,
+      );
       if (usuario != null && mounted) {
         setState(() {
           _currentUserCity = usuario.cidade;
         });
-        // CORREÇÃO: Garantir que o usuário atual seja excluído
         usuarioController.carregarUsuariosPorCidade(
           _currentUserCity!,
           excludeUserId: _currentUserId,
@@ -82,16 +87,28 @@ class _TelaProcuraTrocasState extends State<TelaProcuraTrocas> {
       _searchQuery = value;
     });
 
-    final usuarioController = Provider.of<UsuarioController>(context, listen: false);
-    // CORREÇÃO: Sempre excluir o usuário atual das buscas
-    usuarioController.realizarBusca(value, _currentUserCity, excludedUserId: _currentUserId);
+    final usuarioController = Provider.of<UsuarioController>(
+      context,
+      listen: false,
+    );
+    usuarioController.realizarBusca(
+      value,
+      _currentUserCity,
+      excludedUserId: _currentUserId,
+    );
   }
 
-  // CORREÇÃO: Método para filtrar usuários excluindo o usuário atual
   List<dynamic> _filtrarUsuariosExcluindoAtual(List<dynamic> usuarios) {
     if (_currentUserId == null) return usuarios;
-    
+
     return usuarios.where((usuario) => usuario.id != _currentUserId).toList();
+  }
+
+  List<dynamic> _limitarUsuarios(List<dynamic> usuarios) {
+    if (usuarios.length > 25) {
+      return usuarios.sublist(0, 25);
+    }
+    return usuarios;
   }
 
   Widget _buildNavItem(IconData icon, String label, int index) {
@@ -115,13 +132,17 @@ class _TelaProcuraTrocasState extends State<TelaProcuraTrocas> {
                   width: 40,
                   height: 40,
                   decoration: BoxDecoration(
-                    color: _currentIndex == index ? AppColors.roxo.withOpacity(0.1) : Colors.transparent,
+                    color: _currentIndex == index
+                        ? AppColors.roxo.withOpacity(0.1)
+                        : Colors.transparent,
                     shape: BoxShape.circle,
                   ),
                   child: Icon(
                     icon,
                     size: 24,
-                    color: _currentIndex == index ? AppColors.roxo : AppColors.cinza,
+                    color: _currentIndex == index
+                        ? AppColors.roxo
+                        : AppColors.cinza,
                   ),
                 ),
                 const SizedBox(height: 4),
@@ -130,7 +151,9 @@ class _TelaProcuraTrocasState extends State<TelaProcuraTrocas> {
                   style: TextStyle(
                     fontSize: 10,
                     fontWeight: FontWeight.w500,
-                    color: _currentIndex == index ? AppColors.roxo : AppColors.cinza,
+                    color: _currentIndex == index
+                        ? AppColors.roxo
+                        : AppColors.cinza,
                   ),
                 ),
               ],
@@ -155,7 +178,12 @@ class _TelaProcuraTrocasState extends State<TelaProcuraTrocas> {
                 borderRadius: BorderRadius.circular(25),
                 boxShadow: [
                   BoxShadow(
-                    color: const Color.fromARGB(255, 36, 185, 16).withOpacity(0.3),
+                    color: const Color.fromARGB(
+                      255,
+                      36,
+                      185,
+                      16,
+                    ).withOpacity(0.3),
                     blurRadius: 8,
                     offset: const Offset(0, 2),
                   ),
@@ -176,9 +204,7 @@ class _TelaProcuraTrocasState extends State<TelaProcuraTrocas> {
     if (_currentIndex != 0) {
       return Scaffold(
         backgroundColor: AppColors.fundo,
-        body: SafeArea(
-          child: _telas[_currentIndex],
-        ),
+        body: SafeArea(child: _telas[_currentIndex]),
         bottomNavigationBar: Container(
           height: 80,
           decoration: BoxDecoration(
@@ -256,16 +282,29 @@ class _TelaProcuraTrocasState extends State<TelaProcuraTrocas> {
                   onChanged: _onSearchChanged,
                   decoration: InputDecoration(
                     hintText: "Buscar por nome, bio ou cidade...",
-                    hintStyle: TextStyle(color: AppColors.cinza.withOpacity(0.7)),
+                    hintStyle: TextStyle(
+                      color: AppColors.cinza.withOpacity(0.7),
+                    ),
                     border: InputBorder.none,
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 20,
+                      vertical: 18,
+                    ),
                     prefixIcon: Container(
                       margin: const EdgeInsets.only(left: 8, right: 4),
-                      child: Icon(Icons.search, color: AppColors.roxo, size: 24),
+                      child: Icon(
+                        Icons.search,
+                        color: AppColors.roxo,
+                        size: 24,
+                      ),
                     ),
                     suffixIcon: _searchQuery.isNotEmpty
                         ? IconButton(
-                            icon: Icon(Icons.clear, color: AppColors.cinza, size: 20),
+                            icon: Icon(
+                              Icons.clear,
+                              color: AppColors.cinza,
+                              size: 20,
+                            ),
                             onPressed: () {
                               _controladorBuscarHabilidades.clear();
                               _onSearchChanged('');
@@ -279,8 +318,10 @@ class _TelaProcuraTrocasState extends State<TelaProcuraTrocas> {
               const SizedBox(height: 24),
               Consumer<UsuarioController>(
                 builder: (context, usuarioController, child) {
-                  // CORREÇÃO: Filtrar usuários excluindo o atual
-                  final usuariosFiltrados = _filtrarUsuariosExcluindoAtual(usuarioController.usuarios);
+                  final usuariosFiltrados = _filtrarUsuariosExcluindoAtual(
+                    usuarioController.usuarios,
+                  );
+                  final usuariosLimitados = _limitarUsuarios(usuariosFiltrados);
 
                   if (usuarioController.isLoading) {
                     return Container(
@@ -300,7 +341,11 @@ class _TelaProcuraTrocasState extends State<TelaProcuraTrocas> {
                       child: Center(
                         child: Column(
                           children: [
-                            Icon(Icons.error_outline, size: 64, color: Colors.red),
+                            Icon(
+                              Icons.error_outline,
+                              size: 64,
+                              color: Colors.red,
+                            ),
                             const SizedBox(height: 16),
                             Text(
                               usuarioController.errorMessage!,
@@ -313,8 +358,9 @@ class _TelaProcuraTrocasState extends State<TelaProcuraTrocas> {
                     );
                   }
 
-                  // CORREÇÃO: Usar a lista filtrada para as verificações
-                  if (!usuarioController.isLoading && usuariosFiltrados.isEmpty && _searchQuery.isEmpty) {
+                  if (!usuarioController.isLoading &&
+                      usuariosLimitados.isEmpty &&
+                      _searchQuery.isEmpty) {
                     return Container(
                       margin: const EdgeInsets.only(top: 60),
                       child: Center(
@@ -349,8 +395,9 @@ class _TelaProcuraTrocasState extends State<TelaProcuraTrocas> {
                     );
                   }
 
-                  // CORREÇÃO: Usar a lista filtrada para as verificações
-                  if (!usuarioController.isLoading && usuariosFiltrados.isEmpty && _searchQuery.isNotEmpty) {
+                  if (!usuarioController.isLoading &&
+                      usuariosLimitados.isEmpty &&
+                      _searchQuery.isNotEmpty) {
                     return Container(
                       margin: const EdgeInsets.only(top: 60),
                       child: Center(
@@ -384,13 +431,15 @@ class _TelaProcuraTrocasState extends State<TelaProcuraTrocas> {
                     );
                   }
 
-                  // CORREÇÃO: Usar a lista filtrada para exibir os usuários
-                  if (!usuarioController.isLoading && usuariosFiltrados.isNotEmpty) {
+                  if (!usuarioController.isLoading &&
+                      usuariosLimitados.isNotEmpty) {
                     return Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
                         Text(
-                          _searchQuery.isEmpty ? "🔥 Recomendados perto de você" : "🔍 Resultados da busca",
+                          _searchQuery.isEmpty
+                              ? "🔥 Pessoas perto de você"
+                              : "🔍 Resultados da busca",
                           style: TextStyle(
                             color: AppColors.black,
                             fontSize: 20,
@@ -398,9 +447,19 @@ class _TelaProcuraTrocasState extends State<TelaProcuraTrocas> {
                             height: 1.4,
                           ),
                         ),
+                        const SizedBox(height: 8),
+                        Text(
+                          _searchQuery.isEmpty
+                              ? "Mostrando ${usuariosLimitados.length} usuários"
+                              : "",
+                          style: TextStyle(
+                            color: AppColors.cinza,
+                            fontSize: 14,
+                          ),
+                        ),
                         const SizedBox(height: 16),
                         Column(
-                          children: usuariosFiltrados
+                          children: usuariosLimitados
                               .map((usuario) => _buildUserCard(usuario))
                               .toList(),
                         ),
@@ -447,9 +506,8 @@ class _TelaProcuraTrocasState extends State<TelaProcuraTrocas> {
   }
 
   Widget _buildUserCard(dynamic usuario) {
-    // CORREÇÃO: Verificação adicional de segurança
     if (usuario.id == _currentUserId) {
-      return const SizedBox.shrink(); // Não renderiza o próprio usuário
+      return const SizedBox.shrink();
     }
 
     return Container(
@@ -508,11 +566,18 @@ class _TelaProcuraTrocasState extends State<TelaProcuraTrocas> {
                       const SizedBox(height: 6),
                       Row(
                         children: [
-                          Icon(Icons.location_on, size: 14, color: AppColors.cinza),
+                          Icon(
+                            Icons.location_on,
+                            size: 14,
+                            color: AppColors.cinza,
+                          ),
                           const SizedBox(width: 4),
                           Text(
                             usuario.cidade,
-                            style: TextStyle(fontSize: 14, color: AppColors.cinza),
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: AppColors.cinza,
+                            ),
                           ),
                         ],
                       ),
@@ -537,19 +602,22 @@ class _TelaProcuraTrocasState extends State<TelaProcuraTrocas> {
                         return ElevatedButton(
                           onPressed: () async {
                             if (_currentUserId == null) return;
-                            
-                            final chatId = chatController.gerarChatId(_currentUserId!, usuario.id!);
-                            
+
+                            final chatId = chatController.gerarChatId(
+                              _currentUserId!,
+                              usuario.id!,
+                            );
+
                             await chatController.verificarECriarChat(
                               chatId: chatId,
                               user1Id: _currentUserId!,
                               user2Id: usuario.id!,
-                              user1Nome: 'Seu Nome', // CORREÇÃO: Você deve pegar o nome do usuário atual
+                              user1Nome: 'Seu Nome',
                               user2Nome: usuario.nomeCompleto,
                               user1Foto: null,
                               user2Foto: usuario.fotoUrl,
                             );
-                            
+
                             Navigator.push(
                               context,
                               MaterialPageRoute(
@@ -566,7 +634,10 @@ class _TelaProcuraTrocasState extends State<TelaProcuraTrocas> {
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(12),
                             ),
-                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 10,
+                            ),
                             elevation: 0,
                           ),
                           child: Text(

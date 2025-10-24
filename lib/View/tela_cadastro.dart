@@ -23,17 +23,13 @@ class TelaCadastro extends StatefulWidget {
 }
 
 class _TelaCadastroState extends State<TelaCadastro> {
-  final TextEditingController _controladorNomeCompleto =
-      TextEditingController();
-  final TextEditingController _controladorEmailCadastro =
-      TextEditingController();
+  final TextEditingController _controladorNomeCompleto = TextEditingController();
+  final TextEditingController _controladorEmailCadastro = TextEditingController();
   final TextEditingController _controladorCPF = TextEditingController();
   final TextEditingController _controladorCidade = TextEditingController();
   final TextEditingController _controladorBio = TextEditingController();
-  final TextEditingController _controladorSenhaCadastro =
-      TextEditingController();
-  final TextEditingController _controladorConfirmarSenha =
-      TextEditingController();
+  final TextEditingController _controladorSenhaCadastro = TextEditingController();
+  final TextEditingController _controladorConfirmarSenha = TextEditingController();
   final TextEditingController _controladorDataNasc = TextEditingController();
   final _chaveFormulario = GlobalKey<FormState>();
 
@@ -74,6 +70,29 @@ class _TelaCadastroState extends State<TelaCadastro> {
     });
   }
 
+  DateTime? _converterDataDigitada(String textoData) {
+    if (textoData.isEmpty) return null;
+    
+    try {
+      final partes = textoData.split('/');
+      if (partes.length != 3) return null;
+      
+      final dia = int.tryParse(partes[0]);
+      final mes = int.tryParse(partes[1]);
+      final ano = int.tryParse(partes[2]);
+      
+      if (dia == null || mes == null || ano == null) return null;
+      
+      if (dia < 1 || dia > 31 || mes < 1 || mes > 12 || ano < 1900) {
+        return null;
+      }
+      
+      return DateTime(ano, mes, dia);
+    } catch (e) {
+      return null;
+    }
+  }
+
   Future<void> _selecionarData(BuildContext context) async {
     final DateTime? dataSelecionada = await showDatePicker(
       context: context,
@@ -109,9 +128,9 @@ class _TelaCadastroState extends State<TelaCadastro> {
 
   void _aplicarMascaraData(String valor) {
     final textoLimpo = valor.replaceAll(RegExp(r'[^\d]'), '');
-    
+
     String textoFormatado = '';
-    
+
     if (textoLimpo.length >= 1) {
       textoFormatado = textoLimpo.substring(0, 1);
     }
@@ -119,22 +138,28 @@ class _TelaCadastroState extends State<TelaCadastro> {
       textoFormatado = textoLimpo.substring(0, 2);
     }
     if (textoLimpo.length >= 3) {
-      textoFormatado = '${textoLimpo.substring(0, 2)}/${textoLimpo.substring(2, 3)}';
+      textoFormatado =
+          '${textoLimpo.substring(0, 2)}/${textoLimpo.substring(2, 3)}';
     }
     if (textoLimpo.length >= 4) {
-      textoFormatado = '${textoLimpo.substring(0, 2)}/${textoLimpo.substring(2, 4)}';
+      textoFormatado =
+          '${textoLimpo.substring(0, 2)}/${textoLimpo.substring(2, 4)}';
     }
     if (textoLimpo.length >= 5) {
-      textoFormatado = '${textoLimpo.substring(0, 2)}/${textoLimpo.substring(2, 4)}/${textoLimpo.substring(4, 5)}';
+      textoFormatado =
+          '${textoLimpo.substring(0, 2)}/${textoLimpo.substring(2, 4)}/${textoLimpo.substring(4, 5)}';
     }
     if (textoLimpo.length >= 6) {
-      textoFormatado = '${textoLimpo.substring(0, 2)}/${textoLimpo.substring(2, 4)}/${textoLimpo.substring(4, 6)}';
+      textoFormatado =
+          '${textoLimpo.substring(0, 2)}/${textoLimpo.substring(2, 4)}/${textoLimpo.substring(4, 6)}';
     }
     if (textoLimpo.length >= 7) {
-      textoFormatado = '${textoLimpo.substring(0, 2)}/${textoLimpo.substring(2, 4)}/${textoLimpo.substring(4, 7)}';
+      textoFormatado =
+          '${textoLimpo.substring(0, 2)}/${textoLimpo.substring(2, 4)}/${textoLimpo.substring(4, 7)}';
     }
     if (textoLimpo.length >= 8) {
-      textoFormatado = '${textoLimpo.substring(0, 2)}/${textoLimpo.substring(2, 4)}/${textoLimpo.substring(4, 8)}';
+      textoFormatado =
+          '${textoLimpo.substring(0, 2)}/${textoLimpo.substring(2, 4)}/${textoLimpo.substring(4, 8)}';
     }
 
     if (_controladorDataNasc.text != textoFormatado) {
@@ -218,7 +243,7 @@ class _TelaCadastroState extends State<TelaCadastro> {
                   "• Direitos: exclusão de conta, revogação de consentimento, acesso aos dados\n\n",
                   style: TextStyle(color: AppColors.cinza, fontSize: 14),
                 ),
-                
+
                 Text(
                   "🔒 TERMO DE CONSENTIMENTO PARA TRATAMENTO DE DADOS",
                   style: TextStyle(
@@ -245,7 +270,7 @@ class _TelaCadastroState extends State<TelaCadastro> {
                   "• Melhorar experiência do usuário\n\n",
                   style: TextStyle(color: AppColors.cinza, fontSize: 14),
                 ),
-                
+
                 Text(
                   "🛡️ POLÍTICA DE PRIVACIDADE",
                   style: TextStyle(
@@ -286,7 +311,10 @@ class _TelaCadastroState extends State<TelaCadastro> {
               onPressed: () => Navigator.pop(context),
               child: Text(
                 "Não Aceito",
-                style: TextStyle(color: AppColors.cinza, fontWeight: FontWeight.bold),
+                style: TextStyle(
+                  color: AppColors.cinza,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
             TextButton(
@@ -359,6 +387,21 @@ class _TelaCadastroState extends State<TelaCadastro> {
           ),
         );
         return;
+      }
+
+      if (_dataNascimento == null && _controladorDataNasc.text.isNotEmpty) {
+        final dataConvertida = _converterDataDigitada(_controladorDataNasc.text);
+        if (dataConvertida != null) {
+          _dataNascimento = dataConvertida;
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text("Data de nascimento inválida"),
+              backgroundColor: Colors.red,
+            ),
+          );
+          return;
+        }
       }
 
       final String senhaDigitada = _controladorSenhaCadastro.text.trim();
@@ -535,21 +578,35 @@ class _TelaCadastroState extends State<TelaCadastro> {
                     const SizedBox(height: 8),
                     TextFormField(
                       controller: _controladorDataNasc,
-                      decoration: _decoracao(
-                        "Data de Nascimento (DD/MM/AAAA)",
-                      ).copyWith(
-                        suffixIcon: IconButton(
-                          icon: Icon(Icons.calendar_today, color: AppColors.roxo),
-                          onPressed: () => _selecionarData(context),
-                        ),
-                      ),
+                      decoration: _decoracao("Data de Nascimento (DD/MM/AAAA)")
+                          .copyWith(
+                            suffixIcon: IconButton(
+                              icon: Icon(
+                                Icons.calendar_today,
+                                color: AppColors.roxo,
+                              ),
+                              onPressed: () => _selecionarData(context),
+                            ),
+                          ),
                       keyboardType: TextInputType.number,
                       inputFormatters: [
                         FilteringTextInputFormatter.digitsOnly,
                         LengthLimitingTextInputFormatter(10),
                       ],
-                      onChanged: _aplicarMascaraData,
-                      validator: (valor) => Validators.validarDataNascimentoFormatada(valor),
+                      onChanged: (valor) {
+                        _aplicarMascaraData(valor);
+                        
+                        if (valor.length == 10) {
+                          final dataConvertida = _converterDataDigitada(valor);
+                          if (dataConvertida != null) {
+                            setState(() {
+                              _dataNascimento = dataConvertida;
+                            });
+                          }
+                        }
+                      },
+                      validator: (valor) =>
+                          Validators.validarDataNascimentoFormatada(valor),
                     ),
                     const SizedBox(height: 8),
                     TextFormField(
@@ -601,7 +658,9 @@ class _TelaCadastroState extends State<TelaCadastro> {
                       decoration: _decoracao("Senha").copyWith(
                         suffixIcon: IconButton(
                           icon: Icon(
-                            _senhaVisivel ? Icons.visibility : Icons.visibility_off,
+                            _senhaVisivel
+                                ? Icons.visibility
+                                : Icons.visibility_off,
                             color: AppColors.roxo,
                           ),
                           onPressed: _alternarVisibilidadeSenha,
@@ -617,7 +676,9 @@ class _TelaCadastroState extends State<TelaCadastro> {
                       decoration: _decoracao("Confirmar Senha").copyWith(
                         suffixIcon: IconButton(
                           icon: Icon(
-                            _confirmarSenhaVisivel ? Icons.visibility : Icons.visibility_off,
+                            _confirmarSenhaVisivel
+                                ? Icons.visibility
+                                : Icons.visibility_off,
                             color: AppColors.roxo,
                           ),
                           onPressed: _alternarVisibilidadeConfirmarSenha,

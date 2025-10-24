@@ -1,6 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-
 class Usuario {
   String? id;
   final String nomeCompleto;
@@ -35,8 +34,7 @@ class Usuario {
       'cidade': cidade,
       'bio': bio,
       'genero': genero,
-      // ✅ CORRIGIDO: Envia o DateTime puro. Firestore o converte para Timestamp.
-      'dataNascimento': dataNascimento, 
+      'dataNascimento': dataNascimento,
       'fotoUrl': fotoUrl,
       'projetos': projetos.map((projeto) => projeto.toMap()).toList(),
     };
@@ -51,19 +49,18 @@ class Usuario {
       cidade: map['cidade'] ?? '',
       bio: map['bio'] ?? '',
       genero: map['genero'],
-      // ✅ CORRIGIDO: Lê o Timestamp do Firestore e o converte para DateTime.
       dataNascimento: map['dataNascimento'] is Timestamp
           ? (map['dataNascimento'] as Timestamp).toDate()
           : null,
       fotoUrl: map['fotoUrl'],
-      projetos: (map['projetos'] as List?)
+      projetos:
+          (map['projetos'] as List?)
               ?.map((projetoMap) => Projeto.fromMap(projetoMap))
               .toList() ??
           [],
     );
   }
-  
-  // O método copyWith permanece o mesmo, pois já estava correto.
+
   Usuario copyWith({
     String? id,
     String? nomeCompleto,
@@ -91,8 +88,6 @@ class Usuario {
   }
 }
 
-
-
 class Projeto {
   final String id;
   final String titulo;
@@ -117,7 +112,6 @@ class Projeto {
       'descricao': descricao,
       'imagemUrl': imagemUrl,
       'link': link,
-      // ✅ CORRIGIDO: Envia o DateTime puro.
       'dataCriacao': dataCriacao,
     };
   }
@@ -129,14 +123,12 @@ class Projeto {
       descricao: map['descricao'] ?? '',
       imagemUrl: map['imagemUrl'],
       link: map['link'],
-      // ✅ CORRIGIDO: Lê o Timestamp do Firestore e o converte para DateTime.
       dataCriacao: (map['dataCriacao'] is Timestamp)
           ? (map['dataCriacao'] as Timestamp).toDate()
           : DateTime.now(),
     );
   }
-  
-  // O método copyWith permanece o mesmo, pois já estava correto.
+
   Projeto copyWith({
     String? id,
     String? titulo,

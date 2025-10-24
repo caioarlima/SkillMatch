@@ -246,23 +246,35 @@ class _TelaConfiguracoesState extends State<TelaConfiguracoes> {
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
-              _buildTermoItem('CLÁUSULA PRIMEIRA – DAS CONDIÇÕES GERAIS DE USO',
-                  'O "SkillMatch" é destinado a facilitar a conexão entre usuários interessados em trocar habilidades, aprender novas competências e oferecer serviços de maneira colaborativa e segura.'),
-              
-              _buildTermoItem('CLÁUSULA SEGUNDA – DA COLETA E USO DE DADOS PESSOAIS',
-                  'O usuário declara estar ciente da coleta e uso dos seguintes dados pelo "SkillMatch":\n• Nome completo e e-mail → para identificação e login\n• Foto de perfil → para personalizar a conta\n• Habilidades oferecidas e procuradas → para funcionamento do sistema de "match"\n• Histórico de interações e trocas → para controle de reputação e segurança\n• Dados técnicos (IP, tipo de dispositivo, navegador) → para segurança e melhoria de desempenho'),
-              
-              _buildTermoItem('CLÁUSULA TERCEIRA – FINALIDADE DA COLETA',
-                  'A coleta dos dados tem finalidades específicas e essenciais para a operação do "SkillMatch" e a conformidade com a LGPD:\n• Criar e gerenciar o perfil do usuário\n• Viabilizar o sistema de conexão ("match") entre usuários\n• Garantir a segurança das interações e prevenir fraudes\n• Permitir a comunicação interna entre usuários (chat)\n• Melhorar continuamente a experiência e o desempenho do sistema'),
-              
-              _buildTermoItem('CLÁUSULA QUARTA – VEDAÇÕES DO USO',
-                  'O usuário compromete-se a não utilizar o "SkillMatch" para qualquer finalidade ilícita ou que viole este Termo de Uso, incluindo:\n• Carregar conteúdo ilegal, ofensivo ou difamatório\n• Praticar qualquer forma de fraude, assédio ou discriminação\n• Acessar, alterar ou danificar contas de outros usuários\n• Violar direitos autorais ou de propriedade intelectual'),
-              
-              _buildTermoItem('CLÁUSULA SEXTA – DA PROTEÇÃO DOS DADOS',
-                  'O "SkillMatch" compromete-se a adotar medidas técnicas e administrativas em conformidade com a LGPD e normas ISO/IEC 27001, 27701 e 29100, incluindo:\n• Criptografia de dados e comunicações\n• Banco de dados seguro com acesso restrito\n• Autenticação robusta e monitoramento de acessos\n• Plano de resposta a incidentes e cópias de segurança periódicas'),
-              
-              _buildTermoItem('CLÁUSULA OITAVA – DOS DIREITOS DO TITULAR DOS DADOS',
-                  'Em conformidade com a LGPD, o sistema permite que o usuário exerça seus direitos, incluindo:\n• Solicitar a exclusão da conta e de todos os dados\n• Revogar o consentimento a qualquer momento\n• Solicitar informações sobre o uso e tratamento de seus dados\n\nCanal de contato: skillmatch2025@gmail.com'),
+              _buildTermoItem(
+                'CLÁUSULA PRIMEIRA – DAS CONDIÇÕES GERAIS DE USO',
+                'O "SkillMatch" é destinado a facilitar a conexão entre usuários interessados em trocar habilidades, aprender novas competências e oferecer serviços de maneira colaborativa e segura.',
+              ),
+
+              _buildTermoItem(
+                'CLÁUSULA SEGUNDA – DA COLETA E USO DE DADOS PESSOAIS',
+                'O usuário declara estar ciente da coleta e uso dos seguintes dados pelo "SkillMatch":\n• Nome completo e e-mail → para identificação e login\n• Foto de perfil → para personalizar a conta\n• Habilidades oferecidas e procuradas → para funcionamento do sistema de "match"\n• Histórico de interações e trocas → para controle de reputação e segurança\n• Dados técnicos (IP, tipo de dispositivo, navegador) → para segurança e melhoria de desempenho',
+              ),
+
+              _buildTermoItem(
+                'CLÁUSULA TERCEIRA – FINALIDADE DA COLETA',
+                'A coleta dos dados tem finalidades específicas e essenciais para a operação do "SkillMatch" e a conformidade com a LGPD:\n• Criar e gerenciar o perfil do usuário\n• Viabilizar o sistema de conexão ("match") entre usuários\n• Garantir a segurança das interações e prevenir fraudes\n• Permitir a comunicação interna entre usuários (chat)\n• Melhorar continuamente a experiência e o desempenho do sistema',
+              ),
+
+              _buildTermoItem(
+                'CLÁUSULA QUARTA – VEDAÇÕES DO USO',
+                'O usuário compromete-se a não utilizar o "SkillMatch" para qualquer finalidade ilícita ou que viole este Termo de Uso, incluindo:\n• Carregar conteúdo ilegal, ofensivo ou difamatório\n• Praticar qualquer forma de fraude, assédio ou discriminação\n• Acessar, alterar ou danificar contas de outros usuários\n• Violar direitos autorais ou de propriedade intelectual',
+              ),
+
+              _buildTermoItem(
+                'CLÁUSULA SEXTA – DA PROTEÇÃO DOS DADOS',
+                'O "SkillMatch" compromete-se a adotar medidas técnicas e administrativas em conformidade com a LGPD e normas ISO/IEC 27001, 27701 e 29100, incluindo:\n• Criptografia de dados e comunicações\n• Banco de dados seguro com acesso restrito\n• Autenticação robusta e monitoramento de acessos\n• Plano de resposta a incidentes e cópias de segurança periódicas',
+              ),
+
+              _buildTermoItem(
+                'CLÁUSULA OITAVA – DOS DIREITOS DO TITULAR DOS DADOS',
+                'Em conformidade com a LGPD, o sistema permite que o usuário exerça seus direitos, incluindo:\n• Solicitar a exclusão da conta e de todos os dados\n• Revogar o consentimento a qualquer momento\n• Solicitar informações sobre o uso e tratamento de seus dados\n\nCanal de contato: skillmatch2025@gmail.com',
+              ),
             ],
           ),
         ),
@@ -302,23 +314,35 @@ class _TelaConfiguracoesState extends State<TelaConfiguracoes> {
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
-              _buildTermoItem('1. SOBRE O SKILLMATCH',
-                  'O SkillMatch é uma plataforma que conecta pessoas para a troca de habilidades e serviços, promovendo aprendizado, colaboração e networking. Os usuários podem criar perfis, listar suas habilidades e encontrar parceiros compatíveis através de um sistema de match inteligente, com chat interno e avaliações.'),
-              
-              _buildTermoItem('2. DADOS COLETADOS',
-                  'Dados fornecidos pelo usuário:\n• Nome completo\n• E-mail\n• Senha (armazenada de forma criptografada)\n• Foto de perfil (opcional)\n• Habilidades e áreas de interesse\n• Mensagens trocadas dentro da plataforma\n\nDados coletados automaticamente:\n• Endereço IP\n• Tipo de dispositivo e sistema operacional\n• Data e hora de acesso\n• Cookies e identificadores técnicos'),
-              
-              _buildTermoItem('3. FINALIDADE DO TRATAMENTO DE DADOS',
-                  'Os dados são utilizados exclusivamente para:\n• Criar e gerenciar contas de usuários\n• Realizar match entre habilidades compatíveis\n• Permitir comunicação via chat interno\n• Personalizar recomendações e experiência de uso\n• Garantir segurança, auditoria e prevenção de fraudes\n• Enviar comunicações relacionadas à plataforma'),
-              
-              _buildTermoItem('6. COMPARTILHAMENTO DE DADOS',
-                  'Os dados não são vendidos nem compartilhados com terceiros, exceto:\n• Quando houver consentimento expresso do usuário\n• Por obrigação legal ou ordem judicial\n• Para suporte técnico ou hospedagem segura, sob cláusulas contratuais de confidencialidade'),
-              
-              _buildTermoItem('9. DIREITOS DO TITULAR DOS DADOS',
-                  'Você pode exercer seus direitos garantidos pela LGPD, incluindo:\n• Acesso aos seus dados pessoais\n• Correção de informações incorretas\n• Exclusão da conta e dos dados\n• Revogação do consentimento\n• Solicitação de portabilidade\n• Informação sobre uso e compartilhamento dos dados\n\nPara exercer seus direitos: skillmatch2025@gmail.com'),
-              
-              _buildTermoItem('12. CANAL DE CONTATO E ENCARREGADO DE DADOS (DPO)',
-                  'Controlador: Projeto SkillMatch\nEncarregado (DPO): Caio Aguilar\nE-mail: skillmatch2025@gmail.com\nTelefone: (31) 99999-9999\nEndereço: Belo Horizonte – MG'),
+              _buildTermoItem(
+                '1. SOBRE O SKILLMATCH',
+                'O SkillMatch é uma plataforma que conecta pessoas para a troca de habilidades e serviços, promovendo aprendizado, colaboração e networking. Os usuários podem criar perfis, listar suas habilidades e encontrar parceiros compatíveis através de um sistema de match inteligente, com chat interno e avaliações.',
+              ),
+
+              _buildTermoItem(
+                '2. DADOS COLETADOS',
+                'Dados fornecidos pelo usuário:\n• Nome completo\n• E-mail\n• Senha (armazenada de forma criptografada)\n• Foto de perfil (opcional)\n• Habilidades e áreas de interesse\n• Mensagens trocadas dentro da plataforma\n\nDados coletados automaticamente:\n• Endereço IP\n• Tipo de dispositivo e sistema operacional\n• Data e hora de acesso\n• Cookies e identificadores técnicos',
+              ),
+
+              _buildTermoItem(
+                '3. FINALIDADE DO TRATAMENTO DE DADOS',
+                'Os dados são utilizados exclusivamente para:\n• Criar e gerenciar contas de usuários\n• Realizar match entre habilidades compatíveis\n• Permitir comunicação via chat interno\n• Personalizar recomendações e experiência de uso\n• Garantir segurança, auditoria e prevenção de fraudes\n• Enviar comunicações relacionadas à plataforma',
+              ),
+
+              _buildTermoItem(
+                '6. COMPARTILHAMENTO DE DADOS',
+                'Os dados não são vendidos nem compartilhados com terceiros, exceto:\n• Quando houver consentimento expresso do usuário\n• Por obrigação legal ou ordem judicial\n• Para suporte técnico ou hospedagem segura, sob cláusulas contratuais de confidencialidade',
+              ),
+
+              _buildTermoItem(
+                '9. DIREITOS DO TITULAR DOS DADOS',
+                'Você pode exercer seus direitos garantidos pela LGPD, incluindo:\n• Acesso aos seus dados pessoais\n• Correção de informações incorretas\n• Exclusão da conta e dos dados\n• Revogação do consentimento\n• Solicitação de portabilidade\n• Informação sobre uso e compartilhamento dos dados\n\nPara exercer seus direitos: skillmatch2025@gmail.com',
+              ),
+
+              _buildTermoItem(
+                '12. CANAL DE CONTATO E ENCARREGADO DE DADOS (DPO)',
+                'Controlador: Projeto SkillMatch\nEncarregado (DPO): Caio Aguilar\nE-mail: skillmatch2025@gmail.com\nTelefone: (31) 99999-9999\nEndereço: Belo Horizonte – MG',
+              ),
             ],
           ),
         ),
@@ -358,23 +382,35 @@ class _TelaConfiguracoesState extends State<TelaConfiguracoes> {
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
-              _buildTermoItem('CLÁUSULA PRIMEIRA – DO OBJETO DO CONSENTIMENTO',
-                  'O titular AUTORIZA o Projeto "SkillMatch" a tratar os seguintes dados pessoais:\n• Nome completo e e-mail: para identificação e autenticação\n• Foto de perfil (opcional): para personalização da conta\n• Habilidades e áreas de interesse: para funcionamento do sistema de match\n• Mensagens e interações: para manter histórico de comunicação\n• Dados técnicos (IP, dispositivo, data/hora): para segurança e prevenção de fraudes'),
-              
-              _buildTermoItem('CLÁUSULA SEGUNDA – DAS FINALIDADES DO TRATAMENTO',
-                  'Os dados pessoais serão utilizados exclusivamente para:\n1. Gerenciar cadastros e perfis dos usuários\n2. Realizar o match entre pessoas com habilidades complementares\n3. Permitir comunicação entre usuários via chat interno\n4. Garantir segurança, auditoria e prevenção de uso indevido do sistema\n5. Melhorar a experiência do usuário e personalizar recomendações'),
-              
-              _buildTermoItem('CLÁUSULA TERCEIRA – DO NÃO COMPARTILHAMENTO DE DADOS',
-                  'Os dados não serão compartilhados com terceiros sem consentimento expresso do titular, exceto em casos de obrigação legal ou suporte técnico restrito. Qualquer eventual compartilhamento seguirá o princípio da necessidade e adotará garantias técnicas e contratuais previstas na ISO/IEC 27001.'),
-              
-              _buildTermoItem('CLÁUSULA SEXTA – DOS DIREITOS DO TITULAR',
-                  'O titular poderá, a qualquer momento:\n• Revogar seu consentimento\n• Solicitar exclusão de seus dados pessoais\n• Solicitar acesso, cópia, correção ou atualização de dados\n• Consultar a finalidade e forma de tratamento dos dados\n• Solicitar portabilidade, quando aplicável'),
-              
-              _buildTermoItem('CLÁUSULA SÉTIMA – CANAL DE COMUNICAÇÃO',
-                  'Canal oficial para dúvidas, solicitações e exercício de direitos:\nE-mail: skillmatch2025@gmail.com\nTelefone: (31) 99999-9999'),
-              
-              _buildTermoItem('CLÁUSULA DÉCIMA – DO TRATAMENTO DE DADOS DE CRIANÇAS E ADOLESCENTES',
-                  'O SkillMatch observa o art. 14 da LGPD e adota medidas específicas para proteger dados de menores:\n• Dados de crianças menores de 12 anos só serão tratados com consentimento expresso de um responsável legal\n• Dados de adolescentes (12 a 18 anos) serão tratados no melhor interesse do titular, com medidas reforçadas de segurança\n• São aplicadas criptografia, controle de acesso restrito e monitoramento constante\n• O consentimento pode ser revogado a qualquer momento pelos responsáveis'),
+              _buildTermoItem(
+                'CLÁUSULA PRIMEIRA – DO OBJETO DO CONSENTIMENTO',
+                'O titular AUTORIZA o Projeto "SkillMatch" a tratar os seguintes dados pessoais:\n• Nome completo e e-mail: para identificação e autenticação\n• Foto de perfil (opcional): para personalização da conta\n• Habilidades e áreas de interesse: para funcionamento do sistema de match\n• Mensagens e interações: para manter histórico de comunicação\n• Dados técnicos (IP, dispositivo, data/hora): para segurança e prevenção de fraudes',
+              ),
+
+              _buildTermoItem(
+                'CLÁUSULA SEGUNDA – DAS FINALIDADES DO TRATAMENTO',
+                'Os dados pessoais serão utilizados exclusivamente para:\n1. Gerenciar cadastros e perfis dos usuários\n2. Realizar o match entre pessoas com habilidades complementares\n3. Permitir comunicação entre usuários via chat interno\n4. Garantir segurança, auditoria e prevenção de uso indevido do sistema\n5. Melhorar a experiência do usuário e personalizar recomendações',
+              ),
+
+              _buildTermoItem(
+                'CLÁUSULA TERCEIRA – DO NÃO COMPARTILHAMENTO DE DADOS',
+                'Os dados não serão compartilhados com terceiros sem consentimento expresso do titular, exceto em casos de obrigação legal ou suporte técnico restrito. Qualquer eventual compartilhamento seguirá o princípio da necessidade e adotará garantias técnicas e contratuais previstas na ISO/IEC 27001.',
+              ),
+
+              _buildTermoItem(
+                'CLÁUSULA SEXTA – DOS DIREITOS DO TITULAR',
+                'O titular poderá, a qualquer momento:\n• Revogar seu consentimento\n• Solicitar exclusão de seus dados pessoais\n• Solicitar acesso, cópia, correção ou atualização de dados\n• Consultar a finalidade e forma de tratamento dos dados\n• Solicitar portabilidade, quando aplicável',
+              ),
+
+              _buildTermoItem(
+                'CLÁUSULA SÉTIMA – CANAL DE COMUNICAÇÃO',
+                'Canal oficial para dúvidas, solicitações e exercício de direitos:\nE-mail: skillmatch2025@gmail.com\nTelefone: (31) 99999-9999',
+              ),
+
+              _buildTermoItem(
+                'CLÁUSULA DÉCIMA – DO TRATAMENTO DE DADOS DE CRIANÇAS E ADOLESCENTES',
+                'O SkillMatch observa o art. 14 da LGPD e adota medidas específicas para proteger dados de menores:\n• Dados de crianças menores de 12 anos só serão tratados com consentimento expresso de um responsável legal\n• Dados de adolescentes (12 a 18 anos) serão tratados no melhor interesse do titular, com medidas reforçadas de segurança\n• São aplicadas criptografia, controle de acesso restrito e monitoramento constante\n• O consentimento pode ser revogado a qualquer momento pelos responsáveis',
+              ),
             ],
           ),
         ),
@@ -412,10 +448,7 @@ class _TelaConfiguracoesState extends State<TelaConfiguracoes> {
           SizedBox(height: 4),
           Text(
             conteudo,
-            style: TextStyle(
-              color: AppColors.cinza,
-              fontSize: 12,
-            ),
+            style: TextStyle(color: AppColors.cinza, fontSize: 12),
           ),
         ],
       ),
@@ -482,11 +515,7 @@ class _TelaConfiguracoesState extends State<TelaConfiguracoes> {
           children: [
             Row(
               children: [
-                Icon(
-                  Icons.description,
-                  color: AppColors.roxo,
-                  size: 24,
-                ),
+                Icon(Icons.description, color: AppColors.roxo, size: 24),
                 SizedBox(width: 8),
                 Text(
                   'Documentos Legais',

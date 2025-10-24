@@ -2,7 +2,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:skilmatch/Services/email_services.dart';
 import '../Model/Usuario.dart';
 
-
 class UsuarioRepository {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
@@ -51,14 +50,20 @@ class UsuarioRepository {
       return Usuario(
         id: id,
         nomeCompleto: 'Seu nome',
-        email: '', cpf: '', cidade: '', bio: '', 
+        email: '',
+        cpf: '',
+        cidade: '',
+        bio: '',
         fotoUrl: 'URL_DO_AVATAR_S',
       );
     } catch (e) {
       return Usuario(
         id: id,
         nomeCompleto: 'Seu nome',
-        email: '', cpf: '', cidade: '', bio: '', 
+        email: '',
+        cpf: '',
+        cidade: '',
+        bio: '',
         fotoUrl: 'URL_DO_AVATAR_S',
       );
     }
@@ -68,7 +73,7 @@ class UsuarioRepository {
     try {
       final usuarioRef = _firestore.collection('usuarios').doc(userId);
       await usuarioRef.update({
-        'projetos': FieldValue.arrayUnion([projeto.toMap()])
+        'projetos': FieldValue.arrayUnion([projeto.toMap()]),
       });
     } catch (e) {
       throw Exception('Erro ao adicionar projeto: $e');
@@ -77,7 +82,10 @@ class UsuarioRepository {
 
   Future<void> removerProjeto(String userId, String projetoId) async {
     try {
-      final usuarioDoc = await _firestore.collection('usuarios').doc(userId).get();
+      final usuarioDoc = await _firestore
+          .collection('usuarios')
+          .doc(userId)
+          .get();
       if (usuarioDoc.exists) {
         final data = usuarioDoc.data()!;
         final projetos = (data['projetos'] as List?) ?? [];
@@ -86,7 +94,7 @@ class UsuarioRepository {
           return projeto.id != projetoId;
         }).toList();
         await _firestore.collection('usuarios').doc(userId).update({
-          'projetos': projetosAtualizados
+          'projetos': projetosAtualizados,
         });
       }
     } catch (e) {
@@ -97,7 +105,7 @@ class UsuarioRepository {
   Future<void> atualizarProjetos(String userId, List<Projeto> projetos) async {
     try {
       await _firestore.collection('usuarios').doc(userId).update({
-        'projetos': projetos.map((projeto) => projeto.toMap()).toList()
+        'projetos': projetos.map((projeto) => projeto.toMap()).toList(),
       });
     } catch (e) {
       throw Exception('Erro ao atualizar projetos: $e');

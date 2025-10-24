@@ -69,9 +69,11 @@ class _TelaMinhasTrocasState extends State<TelaMinhasTrocas> {
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(Icons.lock_outline,
-                              color: AppColors.cinza.withOpacity(0.6),
-                              size: 70),
+                          Icon(
+                            Icons.lock_outline,
+                            color: AppColors.cinza.withOpacity(0.6),
+                            size: 70,
+                          ),
                           const SizedBox(height: 20),
                           Text(
                             'Faça login para ver suas avaliações',
@@ -106,7 +108,9 @@ class _TelaMinhasTrocasState extends State<TelaMinhasTrocas> {
                               ],
                             ),
                             child: Center(
-                              child: CircularProgressIndicator(color: AppColors.roxo),
+                              child: CircularProgressIndicator(
+                                color: AppColors.roxo,
+                              ),
                             ),
                           );
                         }
@@ -128,8 +132,11 @@ class _TelaMinhasTrocasState extends State<TelaMinhasTrocas> {
                             child: Column(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                Icon(Icons.error_outline,
-                                    color: Colors.redAccent, size: 72),
+                                Icon(
+                                  Icons.error_outline,
+                                  color: Colors.redAccent,
+                                  size: 72,
+                                ),
                                 const SizedBox(height: 20),
                                 Text(
                                   'Erro ao carregar avaliações',
@@ -171,9 +178,11 @@ class _TelaMinhasTrocasState extends State<TelaMinhasTrocas> {
                             child: Column(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                Icon(Icons.swap_horiz,
-                                    size: 70,
-                                    color: AppColors.cinza.withOpacity(0.4)),
+                                Icon(
+                                  Icons.swap_horiz,
+                                  size: 70,
+                                  color: AppColors.cinza.withOpacity(0.4),
+                                ),
                                 const SizedBox(height: 20),
                                 Text(
                                   'Nenhuma troca registrada ainda',
@@ -198,9 +207,12 @@ class _TelaMinhasTrocasState extends State<TelaMinhasTrocas> {
                         }
 
                         return Column(
-                          children: avaliacoes.map((avaliacao) => 
-                            _AvaliacaoItem(avaliacao: avaliacao)
-                          ).toList(),
+                          children: avaliacoes
+                              .map(
+                                (avaliacao) =>
+                                    _AvaliacaoItem(avaliacao: avaliacao),
+                              )
+                              .toList(),
                         );
                       },
                     ),
@@ -235,8 +247,9 @@ class _AvaliacaoItemState extends State<_AvaliacaoItem> {
         context,
         listen: false,
       );
-      final usuario = await usuarioController
-          .buscarUsuarioPorId(widget.avaliacao.usuarioAvaliadorId);
+      final usuario = await usuarioController.buscarUsuarioPorId(
+        widget.avaliacao.usuarioAvaliadorId,
+      );
       if (mounted) {
         setState(() {
           _usuarioAvaliador = usuario;
@@ -306,10 +319,7 @@ class _AvaliacaoItemState extends State<_AvaliacaoItem> {
                       const SizedBox(height: 2),
                       Text(
                         _formatarData(widget.avaliacao.dataAvaliacao),
-                        style: TextStyle(
-                          fontSize: 13,
-                          color: AppColors.cinza,
-                        ),
+                        style: TextStyle(fontSize: 13, color: AppColors.cinza),
                       ),
                     ],
                   ),

@@ -2,8 +2,9 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 class EmailService {
-  static final String _serviceUrl = 'https://api.emailjs.com/api/v1.0/email/send';
-  
+  static final String _serviceUrl =
+      'https://api.emailjs.com/api/v1.0/email/send';
+
   static final String _serviceId = 'service_ycqjijk';
   static final String _templateId = 'template_hgfe7ov';
   static final String _userId = 'UDhsM2Fd4m0bSArtQ';
@@ -32,7 +33,7 @@ class EmailService {
             'email_denunciado': emailDenunciado,
             'email_denunciante': emailDenunciante,
             'data': DateTime.now().toString(),
-          }
+          },
         }),
       );
 
