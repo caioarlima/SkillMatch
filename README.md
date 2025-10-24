@@ -91,6 +91,7 @@ lib/
 SkillMatch
 
 # Abra a pasta no VS Code
+Descompactar Pasta
 Abrir VS Code
 Abrir Pasta
 Selecionar SkillMatch-Main
