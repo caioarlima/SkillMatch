@@ -179,6 +179,7 @@ Escolha a opção chorme e responsiva ele para app
 
 - O sistema ultrapassou a meta de 20, totalizando **29 funcionalidades**.  
 - Está totalmente funcional com Firebase integrado.
+- Possui alguns prints debugs pois estavamos com alguns problemas com o banco de dados
 
 ### 🔮 Futuras Melhorias
 - Notificações push em tempo real.  
