@@ -91,7 +91,9 @@ lib/
 SkillMatch
 
 # Abra a pasta no VS Code
-cd SkillMatch
+Abrir VS Code
+Abrir Pasta
+Selecionar SkillMatch-Main
 
 # Instale as dependências
 flutter pub get
