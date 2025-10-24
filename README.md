@@ -146,7 +146,7 @@ Escolha a opção chorme e responsiva ele para app
 **✅ Total: 29 funcionalidades implementadas.**
 
 
-<img width="801" height="1051" alt="SkillMatch5 drawio" src="https://github.com/user-attachments/assets/b8932f82-4cf3-4f22-b3bf-19ba3e3ab16d" />
+
 
 ---
 
@@ -168,7 +168,7 @@ Escolha a opção chorme e responsiva ele para app
 **Uso:** Atualizações em tempo real (chat e status de mensagens).  
 **Justificativa:** Permite que a interface reaja automaticamente às mudanças no banco.
 
-> Os diagramas UML dos padrões **Singleton**, **Repository** e **MVC** estão disponíveis em `/docs/uml/`.
+<img width="4852" height="2098" alt="Untitled diagram-2025-10-24-214431" src="https://github.com/user-attachments/assets/dcb64561-fb87-48e6-9647-ee3ac46755bb" />
 
 ---
 
